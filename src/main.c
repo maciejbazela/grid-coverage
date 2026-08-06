@@ -8,6 +8,9 @@
 #define STRING_VIEW_IMPL
 #include "./lib/string_view.h"
 
+#define GRAPH_IMPL
+#include "./lib/graph.h"
+
 static bool parse_int(string_view sv, int32_t* out) {
     char  buf[64];
     char* end;
@@ -51,26 +54,43 @@ static bool parse_pair(string_view sv, int32_t* a, int32_t* b) {
 // ...
 //
 // Where (CELL1_ROW, CELL1_COL) indicated that a cell is blocked
-static bool parse_graph() {
+static graph* parse_graph() {
+
     char line[LINE_BUF_LENGTH];
     int32_t rows, cols;
 
-    if (!fgets(line, sizeof(line), stdin)) return false;
-    if (!parse_pair(sv_from_cstr(line), &rows, &cols)) return false;
-    if (rows <= 0 || cols <= 0) return false;
+    if (!fgets(line, sizeof(line), stdin)) return NULL;
+    string_view sv_line = sv_from_cstr(line);
+    sv_line = sv_trim(sv_line);
+    if (!parse_pair(sv_line, &rows, &cols)) return NULL;
+    if (rows <= 0 || cols <= 0) return NULL;
 
     printf("Graph rows: %d, columns: %d\n", rows, cols);
+    graph* const g = graph_new(rows, cols);
 
     while (fgets(line, sizeof(line), stdin)) {
+        sv_line = sv_from_cstr(line);
+        sv_line = sv_trim(sv_line);
         int32_t cell_row, cell_col;
-        if (!parse_pair(sv_from_cstr(line), &cell_row, &cell_col)) return false;
-        if (cell_row < 0 || cell_col < 0 || cell_row >= rows || cell_col >= cols) return false;
+        if (!parse_pair(sv_line, &cell_row, &cell_col)) {
+            printf("WARNING! Could not parse line: '"SV_PRINT_FMT"'\n", SV_PRINT_ARG(sv_line));
+            continue;
+        }
+        if (cell_row < 0 || cell_row >= rows) {
+            printf("WARNING! row: %d out of bounds [0, %d]\n", cell_row, rows);
+        }
+        if (cell_col < 0 || cell_col >= cols) {
+            printf("WARNING! col: %d out of bounds [0, %d]\n", cell_col, cols);
+        }
         printf("    Cell (%d, %d) is blocked!\n", cell_row, cell_col);
     }
-    return true;
+    return g;
 }
 
 int main() {
-    if (!parse_graph()) return EXIT_FAILURE;
+    graph* g = parse_graph();
+    if (g == NULL) return EXIT_FAILURE;
+
+    graph_free(g);
     return EXIT_SUCCESS;
 }

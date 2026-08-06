@@ -25,6 +25,8 @@ SV_DEF string_view sv_get_word(string_view sv);
 SV_DEF string_view sv_skip_word(string_view sv);
 SV_DEF bool sv_copy_cstr(char* dst, string_view sv, size_t dst_size);
 
+// TODO: add tests!
+
 #ifdef STRING_VIEW_IMPL
 
 SV_DEF string_view sv_from_cstr(const char* str) {
