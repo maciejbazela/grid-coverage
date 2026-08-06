@@ -25,8 +25,6 @@ SV_DEF string_view sv_get_word(string_view sv);
 SV_DEF string_view sv_skip_word(string_view sv);
 SV_DEF bool sv_copy_cstr(char* dst, string_view sv, size_t dst_size);
 
-// TODO: add tests!
-
 #ifdef STRING_VIEW_IMPL
 
 SV_DEF string_view sv_from_cstr(const char* str) {
@@ -34,7 +32,7 @@ SV_DEF string_view sv_from_cstr(const char* str) {
 }
 
 SV_DEF string_view sv_left_trim(string_view sv) {
-    while (sv.size > 0 && isspace(sv.data[0])) {
+    while (sv.size > 0 && isspace((unsigned char) sv.data[0])) {
         sv.data++;
         sv.size--;
     }
@@ -42,7 +40,7 @@ SV_DEF string_view sv_left_trim(string_view sv) {
 }
 
 SV_DEF string_view sv_right_trim(string_view sv) {
-    while (sv.size > 0 && isspace(sv.data[sv.size - 1]))
+    while (sv.size > 0 && isspace((unsigned char) sv.data[sv.size - 1]))
         sv.size--;
     return sv;
 }
@@ -53,15 +51,14 @@ SV_DEF string_view sv_trim(string_view sv) {
 
 SV_DEF string_view sv_get_word(string_view sv) {
     size_t word_len = 0;
-    while (word_len < sv.size && !isspace(sv.data[word_len])) {
-        sv.size--;
+    while (word_len < sv.size && !isspace((unsigned char) sv.data[word_len])) {
         word_len++;
     }
     return (string_view) { .size = word_len, .data = sv.data };
 }
 
 SV_DEF string_view sv_skip_word(string_view sv) {
-    while (sv.size > 0 && !isspace(sv.data[0])) {
+    while (sv.size > 0 && !isspace((unsigned char) sv.data[0])) {
         sv.data++;
         sv.size--;
     }
