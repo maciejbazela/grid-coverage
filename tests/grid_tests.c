@@ -204,6 +204,17 @@ TEST(grid, states_distinct) {
     grid_free(g);
 }
 
+TEST(grid, print_smoke) {
+    // Arrange
+    grid* g = grid_new(3, 3);
+    EXPECT_TRUE(g != NULL);
+    EXPECT_TRUE(grid_set(g, 1, 1));
+    // Act
+    grid_print(g);
+    // Assert
+    grid_free(g);
+}
+
 int main(void) {
     RUN_TEST(grid_new_small);
     RUN_TEST(grid_new_empty_cells);
@@ -221,5 +232,6 @@ int main(void) {
     RUN_TEST(grid_flat_index_out_of_bounds);
     RUN_TEST(grid_flat_matches);
     RUN_TEST(grid_states_distinct);
+    RUN_TEST(grid_print_smoke);
     return test_summary();
 }

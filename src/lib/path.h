@@ -1,10 +1,13 @@
 #pragma once
 
+#include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "grid.h"
 
 #ifndef PATH_DEF
 #define PATH_DEF static inline
@@ -16,10 +19,28 @@ typedef struct {
 
 #define CELL_NONE ((cell){ .idx = SIZE_MAX })
 
+#define DIRECTION_COUNT 4
+
+typedef enum {
+    DIRECTION_NORTH,
+    DIRECTION_SOUTH,
+    DIRECTION_EAST,
+    DIRECTION_WEST,
+    DIRECTION_INVALID,
+} direction;
+
+#define DIRECTION_DELTA_INVALID INT_MIN
+
+PATH_DEF int64_t   direction_row_delta(direction d);
+PATH_DEF int64_t   direction_col_delta(direction d);
+PATH_DEF char      direction_arrow(direction d);
+PATH_DEF direction direction_between(cell from, cell to, size_t cols);
+
 PATH_DEF cell   cell_from_row_col(size_t row, size_t col, size_t cols);
 PATH_DEF size_t cell_row(cell c, size_t cols);
 PATH_DEF size_t cell_col(cell c, size_t cols);
 PATH_DEF bool   cell_eq(cell a, cell b);
+PATH_DEF cell   cell_neighbor(cell c, direction d, size_t cols, size_t cell_count);
 
 typedef struct {
     size_t size, capacity;
@@ -34,8 +55,36 @@ PATH_DEF cell  path_top(const path* p);
 PATH_DEF cell  path_at(const path* p, size_t i);
 PATH_DEF bool  path_copy(path* dst, const path* src);
 PATH_DEF void  path_clear(path* p);
+PATH_DEF void  path_print(path* p, grid* g);
 
 #ifdef PATH_IMPL
+
+PATH_DEF int64_t direction_row_delta(direction d) {
+    static const int64_t deltas[DIRECTION_COUNT] = { -1, 1, 0, 0 };
+    if (d >= DIRECTION_COUNT) return DIRECTION_DELTA_INVALID;
+    return deltas[d];
+}
+
+PATH_DEF int64_t direction_col_delta(direction d) {
+    static const int64_t deltas[DIRECTION_COUNT] = { 0, 0, 1, -1 };
+    if (d >= DIRECTION_COUNT) return DIRECTION_DELTA_INVALID;
+    return deltas[d];
+}
+
+PATH_DEF char direction_arrow(direction d) {
+    static const char arrows[DIRECTION_COUNT] = { '^', 'v', '>', '<' };
+    if (d >= DIRECTION_COUNT) return '?';
+    return arrows[d];
+}
+
+PATH_DEF direction direction_between(cell from, cell to, size_t cols) {
+    int64_t const delta = (int64_t) to.idx - (int64_t) from.idx;
+    if (delta ==  (int64_t) cols) return DIRECTION_SOUTH;
+    if (delta == -(int64_t) cols) return DIRECTION_NORTH;
+    if (delta == 1)               return DIRECTION_EAST;
+    if (delta == -1)              return DIRECTION_WEST;
+    return DIRECTION_INVALID;
+}
 
 PATH_DEF cell cell_from_row_col(size_t row, size_t col, size_t cols) {
     return (cell) { .idx = row * cols + col };
@@ -51,6 +100,17 @@ PATH_DEF size_t cell_col(cell c, size_t cols) {
 
 PATH_DEF bool cell_eq(cell a, cell b) {
     return a.idx == b.idx;
+}
+
+PATH_DEF cell cell_neighbor(cell c, direction d, size_t cols, size_t cell_count) {
+    if (d >= DIRECTION_COUNT) return CELL_NONE;
+    if (cols == 0 || c.idx >= cell_count) return CELL_NONE;
+    int64_t const delta = direction_row_delta(d) * (int64_t) cols + direction_col_delta(d);
+    if (delta == 1  && c.idx % cols == cols - 1) return CELL_NONE;
+    if (delta == -1 && c.idx % cols == 0)        return CELL_NONE;
+    int64_t const n = (int64_t) c.idx + delta;
+    if (n < 0 || (uint64_t) n >= (uint64_t) cell_count) return CELL_NONE;
+    return (cell) { .idx = (size_t) n };
 }
 
 PATH_DEF path* path_new(size_t capacity) {
@@ -97,6 +157,41 @@ PATH_DEF bool path_copy(path* dst, const path* src) {
 
 PATH_DEF void path_clear(path* p) {
     p->size = 0;
+}
+
+PATH_DEF void path_print(path* p, grid* g) {
+    char* const buf = malloc(g->cell_count);
+    if (buf == NULL) return;
+
+    for (size_t i = 0; i < g->cell_count; ++i)
+        buf[i] = g->cells[i] ? '#' : '.';
+
+    if (p->size > 0) {
+        for (size_t i = 1; i + 1 < p->size; ++i) {
+            size_t const idx = p->data[i].idx;
+            if (idx >= g->cell_count) continue;
+            direction d = direction_between(p->data[i], p->data[i + 1], g->cols);
+            if (buf[idx] != '.') { // This cell has already been visited, mark it as backtracked - X
+                buf[idx] = 'X';
+                continue;
+            }
+            buf[idx] = direction_arrow(d);
+        }
+        if (p->data[0].idx < g->cell_count)
+            buf[p->data[0].idx] = 'S';
+        if (p->data[p->size - 1].idx < g->cell_count)
+            buf[p->data[p->size - 1].idx] = 'E';
+    }
+
+    printf("Grid(%ld, %ld) with path of size %ld {\n", g->rows, g->cols, p->size);
+    for (size_t row = 0; row < g->rows; ++row) {
+        printf("  ");
+        for (size_t col = 0; col < g->cols; ++col)
+            printf("%c", buf[row * g->cols + col]);
+        printf("\n");
+    }
+    printf("}\n");
+    free(buf);
 }
 
 #endif // PATH_IMPL
