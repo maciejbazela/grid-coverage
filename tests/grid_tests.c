@@ -12,9 +12,9 @@ TEST(grid, new_small) {
     grid* g = grid_new(3, 4);
     // Assert
     EXPECT_TRUE(g != NULL);
-    EXPECT_EQ(g->rows, (size_t) 3);
-    EXPECT_EQ(g->cols, (size_t) 4);
-    EXPECT_EQ(g->cell_count, (size_t) 12);
+    EXPECT_SIZE_EQ(g->rows, 3);
+    EXPECT_SIZE_EQ(g->cols, 4);
+    EXPECT_SIZE_EQ(g->cell_count, 12);
     grid_free(g);
 }
 

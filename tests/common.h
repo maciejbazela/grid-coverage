@@ -33,6 +33,9 @@ static unsigned int total_tests = 0;
         } \
     } while (0)
 
+#define EXPECT_SIZE_EQ(a, b) \
+    EXPECT_EQ((size_t) (a), (size_t) (b))
+
 #define EXPECT_TRUE(x) \
     do { \
         if (!(x)) { \

@@ -10,7 +10,7 @@ TEST(string_view, from_cstr) {
     // Act
     string_view sv = sv_from_cstr("hello");
     // Assert
-    EXPECT_EQ(sv.size, (size_t) 5);
+    EXPECT_SIZE_EQ(sv.size, 5);
     EXPECT_EQ(sv.data[0], 'h');
     EXPECT_EQ(sv.data[1], 'e');
     EXPECT_EQ(sv.data[2], 'l');
@@ -24,7 +24,7 @@ TEST(string_view, left_trim) {
     // Act
     sv = sv_left_trim(sv);
     // Assert
-    EXPECT_EQ(sv.size, (size_t) 5);
+    EXPECT_SIZE_EQ(sv.size, 5);
     EXPECT_EQ(sv.data[0], 'h');
     EXPECT_EQ(sv.data[1], 'e');
     EXPECT_EQ(sv.data[2], 'l');
@@ -38,7 +38,7 @@ TEST(string_view, left_trim_no_whitespace) {
     // Act
     sv = sv_left_trim(sv);
     // Assert
-    EXPECT_EQ(sv.size, (size_t) 5);
+    EXPECT_SIZE_EQ(sv.size, 5);
     EXPECT_EQ(sv.data[0], 'h');
     EXPECT_EQ(sv.data[1], 'e');
     EXPECT_EQ(sv.data[2], 'l');
@@ -52,7 +52,7 @@ TEST(string_view, left_trim_all_whitespace) {
     // Act
     sv = sv_left_trim(sv);
     // Assert
-    EXPECT_EQ(sv.size, (size_t) 0);
+    EXPECT_SIZE_EQ(sv.size, 0);
 }
 
 TEST(string_view, right_trim) {
@@ -61,7 +61,7 @@ TEST(string_view, right_trim) {
     // Act
     sv = sv_right_trim(sv);
     // Assert
-    EXPECT_EQ(sv.size, (size_t) 5);
+    EXPECT_SIZE_EQ(sv.size, 5);
     EXPECT_EQ(sv.data[0], 'h');
     EXPECT_EQ(sv.data[1], 'e');
     EXPECT_EQ(sv.data[2], 'l');
@@ -75,7 +75,7 @@ TEST(string_view, right_trim_no_whitespace) {
     // Act
     sv = sv_right_trim(sv);
     // Assert
-    EXPECT_EQ(sv.size, (size_t) 5);
+    EXPECT_SIZE_EQ(sv.size, 5);
     EXPECT_EQ(sv.data[0], 'h');
     EXPECT_EQ(sv.data[1], 'e');
     EXPECT_EQ(sv.data[2], 'l');
@@ -89,7 +89,7 @@ TEST(string_view, right_trim_all_whitespace) {
     // Act
     sv = sv_right_trim(sv);
     // Assert
-    EXPECT_EQ(sv.size, (size_t) 0);
+    EXPECT_SIZE_EQ(sv.size, 0);
 }
 
 TEST(string_view, trim) {
@@ -98,7 +98,7 @@ TEST(string_view, trim) {
     // Act
     sv = sv_trim(sv);
     // Assert
-    EXPECT_EQ(sv.size, (size_t) 5);
+    EXPECT_SIZE_EQ(sv.size, 5);
     EXPECT_EQ(sv.data[0], 'h');
     EXPECT_EQ(sv.data[1], 'e');
     EXPECT_EQ(sv.data[2], 'l');
@@ -112,7 +112,7 @@ TEST(string_view, trim_empty) {
     // Act
     sv = sv_trim(sv);
     // Assert
-    EXPECT_EQ(sv.size, (size_t) 0);
+    EXPECT_SIZE_EQ(sv.size, 0);
 }
 
 TEST(string_view, get_word) {
@@ -121,7 +121,7 @@ TEST(string_view, get_word) {
     // Act
     string_view word = sv_get_word(sv);
     // Assert
-    EXPECT_EQ(word.size, (size_t) 5);
+    EXPECT_SIZE_EQ(word.size, 5);
     EXPECT_EQ(word.data[0], 'h');
     EXPECT_EQ(word.data[1], 'e');
     EXPECT_EQ(word.data[2], 'l');
@@ -135,7 +135,7 @@ TEST(string_view, get_word_single) {
     // Act
     string_view word = sv_get_word(sv);
     // Assert
-    EXPECT_EQ(word.size, (size_t) 5);
+    EXPECT_SIZE_EQ(word.size, 5);
     EXPECT_EQ(word.data[0], 'h');
     EXPECT_EQ(word.data[1], 'e');
     EXPECT_EQ(word.data[2], 'l');
@@ -149,7 +149,7 @@ TEST(string_view, get_word_empty) {
     // Act
     string_view word = sv_get_word(sv);
     // Assert
-    EXPECT_EQ(word.size, (size_t) 0);
+    EXPECT_SIZE_EQ(word.size, 0);
 }
 
 TEST(string_view, get_word_whitespace) {
@@ -158,7 +158,7 @@ TEST(string_view, get_word_whitespace) {
     // Act
     string_view word = sv_get_word(sv);
     // Assert
-    EXPECT_EQ(word.size, (size_t) 0);
+    EXPECT_SIZE_EQ(word.size, 0);
 }
 
 TEST(string_view, skip_word) {
@@ -167,7 +167,7 @@ TEST(string_view, skip_word) {
     // Act
     sv = sv_skip_word(sv);
     // Assert
-    EXPECT_EQ(sv.size, (size_t) 6);
+    EXPECT_SIZE_EQ(sv.size, 6);
     EXPECT_EQ(sv.data[0], ' ');
     EXPECT_EQ(sv.data[1], 'w');
     EXPECT_EQ(sv.data[2], 'o');
@@ -182,7 +182,7 @@ TEST(string_view, skip_word_single) {
     // Act
     sv = sv_skip_word(sv);
     // Assert
-    EXPECT_EQ(sv.size, (size_t) 0);
+    EXPECT_SIZE_EQ(sv.size, 0);
 }
 
 TEST(string_view, skip_word_empty) {
@@ -191,7 +191,7 @@ TEST(string_view, skip_word_empty) {
     // Act
     sv = sv_skip_word(sv);
     // Assert
-    EXPECT_EQ(sv.size, (size_t) 0);
+    EXPECT_SIZE_EQ(sv.size, 0);
 }
 
 TEST(string_view, copy_cstr) {
