@@ -13,8 +13,9 @@ OBJS := $(patsubst src/%.c,$(BUILD_DIR)/%.o,$(SRCS))
 TEST_SRCS := $(wildcard $(TEST_DIR)/*.c)
 TEST_BINS := $(patsubst $(TEST_DIR)/%.c,$(TEST_BUILD_DIR)/%,$(TEST_SRCS))
 
-.PHONY: all clean debug test
+.PHONY: all clean debug rebuild test
 all: $(TARGET)
+rebuild: clean $(TARGET)
 
 debug: CFLAGS := $(filter-out -O%,$(CFLAGS))
 debug: CFLAGS += -O0 -g3 -DDEBUG
