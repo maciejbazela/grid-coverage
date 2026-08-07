@@ -88,6 +88,120 @@ static grid* parse_grid_stdin() {
     return g;
 }
 
+static size_t read_line(char buf[LINE_BUF_LENGTH], FILE* f) {
+    size_t len = 0;
+    for (;;) {
+        if (fgets(buf, LINE_BUF_LENGTH, f) == NULL) {
+            if (len == 0) return (size_t) -1; // Error or empty file
+            break;
+        }
+
+        char* nl = strchr(buf, '\n');
+        if (nl) { // Has newline, check for \r and adjust length then exit
+            size_t chunk = (size_t)(nl - buf);
+            if (chunk > 0 && buf[chunk - 1] == '\r') chunk--;
+            len += chunk;
+            break;
+        }
+
+        size_t chunk = strlen(buf);
+        len += chunk;
+        if (chunk < LINE_BUF_LENGTH - 1) break; // EOF (no new line, chunk smaller than max)
+    }
+    return len;
+}
+
+static size_t fill_grid_row(grid* g, size_t row, FILE* f) {
+    char   buf[LINE_BUF_LENGTH];
+    size_t col = 0;
+
+    for (;;) {
+        if (fgets(buf, LINE_BUF_LENGTH, f) == NULL) {
+            if (col == 0) return (size_t) -1;
+            break;
+        }
+
+        char*  nl = strchr(buf, '\n');
+        size_t chunk;
+        if (nl) {
+            chunk = (size_t)(nl - buf);
+            if (chunk > 0 && buf[chunk - 1] == '\r') chunk--;
+        }
+        else
+            chunk = strlen(buf);
+
+        for (size_t i = 0; i < chunk; ++i) {
+            char c = buf[i];
+            if (c == '#') {
+                if (!grid_set(g, row, col)) return (size_t) -1;
+            }
+            else if (c != '.')
+                return (size_t) -1;
+            col++;
+        }
+
+        if (nl) break;
+        if (chunk < LINE_BUF_LENGTH - 1) break; // EOF
+    }
+    return col;
+}
+
+// Expected format: visual representation of the grid
+// . empty cell
+// # blocked cell
+// Every line must have the same number of characters, otherwise this will fail and return NULL
+static grid* parse_grid_file(const char* path) {
+    FILE* f = fopen(path, "r");
+    if (f == NULL) {
+        perror(path);
+        return NULL;
+    }
+
+    char   buf[LINE_BUF_LENGTH];
+    size_t rows = 0, cols = 0;
+
+    for (;;) {
+        size_t len = read_line(buf, f);
+        if (len == (size_t) -1) break;
+        if (rows == 0) {
+            cols = len;
+            if (cols == 0) { // Empty first row
+                fclose(f);
+                return NULL;
+            }
+        }
+        else if (len != cols) {
+            fclose(f);
+            return NULL;
+        }
+        rows++;
+    }
+    if (ferror(f) || rows == 0) {
+        fclose(f);
+        return NULL;
+    }
+
+    rewind(f);
+
+    grid* const g = grid_new(rows, cols);
+    if (g == NULL) {
+        fclose(f);
+        return NULL;
+    }
+
+    for (size_t row = 0; row < rows; ++row) {
+        size_t len = fill_grid_row(g, row, f);
+        if (len != cols) {
+            grid_free(g);
+            fclose(f);
+            return NULL;
+        }
+    }
+
+    fclose(f);
+    return g;
+}
+
 int main(int argc, char* argv[]) {
     if (argc == 1) {
         grid* g = parse_grid_stdin();
@@ -95,8 +209,11 @@ int main(int argc, char* argv[]) {
         grid_print(g);
         grid_free(g);
     }
-    else { // TODO: implement parse_grid_file, file is a visual representation of grid (. - empty, # - full)
-        (void) argv;
+    else {
+        grid* g = parse_grid_file(argv[1]);
+        if (g == NULL) return EXIT_FAILURE;
+        grid_print(g);
+        grid_free(g);
     }
     return EXIT_SUCCESS;
 }
