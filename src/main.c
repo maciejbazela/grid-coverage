@@ -10,8 +10,8 @@
 #define STRING_VIEW_IMPL
 #include "./lib/string_view.h"
 
-#define GRAPH_IMPL
-#include "./lib/graph.h"
+#define GRID_IMPL
+#include "./lib/grid.h"
 
 static bool parse_int(string_view sv, int32_t* out) {
     char  buf[64];
@@ -56,7 +56,7 @@ static bool parse_pair(string_view sv, int32_t* a, int32_t* b) {
 // ...
 //
 // Where (CELL1_ROW, CELL1_COL) indicated that a cell is blocked
-static graph* parse_graph_stdin() {
+static grid* parse_grid_stdin() {
     char line[LINE_BUF_LENGTH];
     int32_t rows, cols;
 
@@ -66,8 +66,8 @@ static graph* parse_graph_stdin() {
     if (!parse_pair(sv_line, &rows, &cols)) return NULL;
     if (rows <= 0 || cols <= 0) return NULL;
 
-    DEBUG_PRINT("Graph rows: %d, columns: %d\n", rows, cols);
-    graph* const g = graph_new(rows, cols);
+    DEBUG_PRINT("Grid rows: %d, columns: %d\n", rows, cols);
+    grid* const g = grid_new(rows, cols);
 
     while (fgets(line, sizeof(line), stdin)) {
         sv_line = sv_trim(sv_from_cstr(line));
@@ -83,19 +83,19 @@ static graph* parse_graph_stdin() {
             DEBUG_PRINT("WARNING! col: %d out of bounds [0, %d]\n", cell_col, cols);
         }
         DEBUG_PRINT("    Cell (%d, %d) is blocked!\n", cell_row, cell_col);
-        graph_set(g, cell_row, cell_col);
+        grid_set(g, cell_row, cell_col);
     }
     return g;
 }
 
 int main(int argc, char* argv[]) {
     if (argc == 1) {
-        graph* g = parse_graph_stdin();
+        grid* g = parse_grid_stdin();
         if (g == NULL) return EXIT_FAILURE;
-        graph_print(g);
-        graph_free(g);
+        grid_print(g);
+        grid_free(g);
     }
-    else { // TODO: implement parse_graph_file, file is a visual representation of graph (. - empty, # - full)
+    else { // TODO: implement parse_grid_file, file is a visual representation of grid (. - empty, # - full)
         (void) argv;
     }
     return EXIT_SUCCESS;
