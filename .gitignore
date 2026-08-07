@@ -56,3 +56,7 @@ dkms.conf
 
 # Build dir
 build
+
+# Do not include random .mds, only README.md
+*.md
+!README.md
