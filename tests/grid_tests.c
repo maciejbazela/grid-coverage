@@ -204,7 +204,7 @@ TEST(grid, states_distinct) {
     grid_free(g);
 }
 
-TEST(grid, print_smoke) {
+TEST(grid, print_smoke_test) {
     // Arrange
     grid* g = grid_new(3, 3);
     EXPECT_TRUE(g != NULL);
@@ -232,6 +232,6 @@ int main(void) {
     RUN_TEST(grid_flat_index_out_of_bounds);
     RUN_TEST(grid_flat_matches);
     RUN_TEST(grid_states_distinct);
-    RUN_TEST(grid_print_smoke);
+    RUN_TEST(grid_print_smoke_test);
     return test_summary();
 }

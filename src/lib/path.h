@@ -44,7 +44,7 @@ PATH_DEF cell   cell_neighbor(cell c, direction d, size_t cols, size_t cell_coun
 
 typedef struct {
     size_t size, capacity;
-    cell data[];
+    cell cells[];
 } path;
 
 PATH_DEF path* path_new(size_t capacity);
@@ -55,7 +55,8 @@ PATH_DEF cell  path_top(const path* p);
 PATH_DEF cell  path_at(const path* p, size_t i);
 PATH_DEF bool  path_copy(path* dst, const path* src);
 PATH_DEF void  path_clear(path* p);
-PATH_DEF void  path_print(path* p, grid* g);
+PATH_DEF void  path_print(path* p, size_t cols);
+PATH_DEF void  path_print_on_grid(path* p, grid* g);
 
 #ifdef PATH_IMPL
 
@@ -79,10 +80,10 @@ PATH_DEF char direction_arrow(direction d) {
 
 PATH_DEF direction direction_between(cell from, cell to, size_t cols) {
     int64_t const delta = (int64_t) to.idx - (int64_t) from.idx;
-    if (delta ==  (int64_t) cols) return DIRECTION_SOUTH;
-    if (delta == -(int64_t) cols) return DIRECTION_NORTH;
-    if (delta == 1)               return DIRECTION_EAST;
-    if (delta == -1)              return DIRECTION_WEST;
+    if (delta ==  (int64_t) cols)      return DIRECTION_SOUTH;
+    else if (delta == -(int64_t) cols) return DIRECTION_NORTH;
+    else if (delta == 1)               return DIRECTION_EAST;
+    else if (delta == -1)              return DIRECTION_WEST;
     return DIRECTION_INVALID;
 }
 
@@ -132,25 +133,25 @@ PATH_DEF void path_free(path* p) {
 
 PATH_DEF bool path_push(path* p, cell c) {
     if (p->size >= p->capacity) return false;
-    p->data[p->size++] = c;
+    p->cells[p->size++] = c;
     return true;
 }
 
 PATH_DEF cell path_pop(path* p) {
-    return p->data[--p->size];
+    return p->cells[--p->size];
 }
 
 PATH_DEF cell path_top(const path* p) {
-    return p->data[p->size - 1];
+    return p->cells[p->size - 1];
 }
 
 PATH_DEF cell path_at(const path* p, size_t i) {
-    return p->data[i];
+    return p->cells[i];
 }
 
 PATH_DEF bool path_copy(path* dst, const path* src) {
     if (dst->capacity < src->size) return false;
-    memcpy(dst->data, src->data, src->size * sizeof(cell));
+    memcpy(dst->cells, src->cells, src->size * sizeof(cell));
     dst->size = src->size;
     return true;
 }
@@ -159,7 +160,27 @@ PATH_DEF void path_clear(path* p) {
     p->size = 0;
 }
 
-PATH_DEF void path_print(path* p, grid* g) {
+#define PATH_PRINT_MAX_ROW 8
+
+PATH_DEF void path_print(path* p, size_t cols) {
+    printf("Path(%ld) {\n", p->size);
+    printf("    ");
+    size_t in_row = 0;
+    for (size_t i = 0; i < p->size - 1; ++i) {
+        if (in_row == PATH_PRINT_MAX_ROW) {
+            printf("\n    ");
+            in_row = 0;
+        }
+        size_t row = cell_row(p->cells[i], cols);
+        size_t col = cell_col(p->cells[i], cols);
+        printf("(%ld, %ld), ", row, col);
+        in_row++;
+    }
+    // Last cell without comma
+    printf("(%ld, %ld)\n}\n", cell_row(p->cells[p->size - 1], cols), cell_col(p->cells[p->size - 1], cols));
+}
+
+PATH_DEF void path_print_on_grid(path* p, grid* g) {
     char* const buf = malloc(g->cell_count);
     if (buf == NULL) return;
 
@@ -168,19 +189,19 @@ PATH_DEF void path_print(path* p, grid* g) {
 
     if (p->size > 0) {
         for (size_t i = 1; i + 1 < p->size; ++i) {
-            size_t const idx = p->data[i].idx;
+            size_t const idx = p->cells[i].idx;
             if (idx >= g->cell_count) continue;
-            direction d = direction_between(p->data[i], p->data[i + 1], g->cols);
+            direction d = direction_between(p->cells[i], p->cells[i + 1], g->cols);
             if (buf[idx] != '.') { // This cell has already been visited, mark it as backtracked - X
                 buf[idx] = 'X';
                 continue;
             }
             buf[idx] = direction_arrow(d);
         }
-        if (p->data[0].idx < g->cell_count)
-            buf[p->data[0].idx] = 'S';
-        if (p->data[p->size - 1].idx < g->cell_count)
-            buf[p->data[p->size - 1].idx] = 'E';
+        if (p->cells[0].idx < g->cell_count)
+            buf[p->cells[0].idx] = 'S';
+        if (p->cells[p->size - 1].idx < g->cell_count)
+            buf[p->cells[p->size - 1].idx] = 'E';
     }
 
     printf("Grid(%ld, %ld) with path of size %ld {\n", g->rows, g->cols, p->size);

@@ -333,7 +333,37 @@ TEST(path, large) {
     path_free(p);
 }
 
-TEST(path, print_smoke) {
+TEST(path, print_smoke_test) {
+    // Arrange
+    path* p = path_new(12);
+    EXPECT_TRUE(p != NULL);
+    EXPECT_TRUE(path_push(p, cell_from_row_col(0, 0, 4)));
+    EXPECT_TRUE(path_push(p, cell_from_row_col(0, 1, 4)));
+    EXPECT_TRUE(path_push(p, cell_from_row_col(0, 2, 4)));
+    EXPECT_TRUE(path_push(p, cell_from_row_col(1, 2, 4)));
+    EXPECT_TRUE(path_push(p, cell_from_row_col(2, 2, 4)));
+    EXPECT_TRUE(path_push(p, cell_from_row_col(2, 3, 4)));
+    // Act
+    path_print(p, 4);
+    // Assert
+    path_free(p);
+}
+
+TEST(path, print_smoke_test_with_long_cols) {
+    // Arrange
+    path* p = path_new(32);
+    EXPECT_TRUE(p != NULL);
+    for (size_t i = 0; i < 32; i++) {
+        EXPECT_TRUE(path_push(p, cell_from_row_col(0, i, 32)));
+    }
+    // Act
+    path_print(p, 32);
+    // Assert
+    path_free(p);
+}
+
+
+TEST(path, print_on_grid_smoke_test) {
     // Arrange
     grid* g = grid_new(3, 4);
     path* p = path_new(12);
@@ -345,13 +375,13 @@ TEST(path, print_smoke) {
     EXPECT_TRUE(path_push(p, cell_from_row_col(2, 2, 4)));
     EXPECT_TRUE(path_push(p, cell_from_row_col(2, 3, 4)));
     // Act
-    path_print(p, g);
+    path_print_on_grid(p, g);
     // Assert
     grid_free(g);
     path_free(p);
 }
 
-TEST(path, print_smoke_with_invalid) {
+TEST(path, print_on_grid_smoke_test_with_invalid) {
     // Arrange
     grid* g = grid_new(4, 4);
     path* p = path_new(12);
@@ -364,13 +394,13 @@ TEST(path, print_smoke_with_invalid) {
     EXPECT_TRUE(path_push(p, cell_from_row_col(2, 2, 4)));
     EXPECT_TRUE(path_push(p, cell_from_row_col(2, 3, 4)));
     // Act
-    path_print(p, g);
+    path_print_on_grid(p, g);
     // Assert
     grid_free(g);
     path_free(p);
 }
 
-TEST(path, print_smoke_with_backtrack) {
+TEST(path, print_on_grid_smoke_test_with_backtrack) {
     // Arrange
     grid* g = grid_new(3, 4);
     path* p = path_new(12);
@@ -384,7 +414,7 @@ TEST(path, print_smoke_with_backtrack) {
     EXPECT_TRUE(path_push(p, cell_from_row_col(2, 2, 4)));
     EXPECT_TRUE(path_push(p, cell_from_row_col(2, 3, 4)));
     // Act
-    path_print(p, g);
+    path_print_on_grid(p, g);
     // Assert
     grid_free(g);
     path_free(p);
@@ -416,8 +446,10 @@ int main(void) {
     RUN_TEST(path_copy_into);
     RUN_TEST(path_copy_small_dst);
     RUN_TEST(path_large);
-    RUN_TEST(path_print_smoke);
-    RUN_TEST(path_print_smoke_with_invalid);
-    RUN_TEST(path_print_smoke_with_backtrack);
+    RUN_TEST(path_print_smoke_test);
+    RUN_TEST(path_print_smoke_test_with_long_cols);
+    RUN_TEST(path_print_on_grid_smoke_test);
+    RUN_TEST(path_print_on_grid_smoke_test_with_invalid);
+    RUN_TEST(path_print_on_grid_smoke_test_with_backtrack);
     return test_summary();
 }
