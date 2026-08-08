@@ -10,6 +10,7 @@
 #endif
 
 typedef struct {
+    // TODO: this probably should be changed to uint16_t since more than 2^32 cells require huge amounts of memory
     size_t rows, cols;
     size_t cell_count;
     bool cells[]; // TODO: use some other type and store cells as bits

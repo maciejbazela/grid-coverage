@@ -16,12 +16,18 @@
 #define PREPROC_DEF static inline
 #endif
 
+#define NO_NEIGHBOUR SIZE_MAX
+
 typedef struct {
-    uint32_t component_id;     // 0 - unassigned, 1+ - component number
-    uint32_t cut_distance;     // 0 for cut vertices, UINT32_MAX for non-cut-vertex components
-    uint8_t  neighbour_count;  // 0..4 free neighbours
+    size_t   neighbour_north;
+    size_t   neighbour_south;
+    size_t   neighbour_east;
+    size_t   neighbour_west;
+    uint32_t component_id;    // 0 - unassigned, 1+ - component number
+    uint32_t cut_distance;    // 0 for cut vertices, UINT32_MAX for non-cut-vertex components
+    uint8_t  neighbour_count; // 0..4 free neighbours
     bool     is_cut_vertex;
-    bool     is_good_start;    // set by grid_good_start for feasible starting cells
+    bool     is_good_start;   // set by grid_good_start for feasible starting cells
 } cell_info;
 
 typedef struct {
@@ -42,7 +48,7 @@ PREPROC_DEF void grid_cut_vertices(const grid* g, grid_context* ctx);
 // Time complexity: O(V + E) = O(cell_count), space complexity: O(V) = O(cell_count)
 PREPROC_DEF void grid_components(const grid* g, grid_context* ctx);
 // Time complexity: O(V) = O(cell_count), space complexity: O(1)
-PREPROC_DEF void grid_neighbour_count(const grid* g, grid_context* ctx);
+PREPROC_DEF void grid_calculate_neighbours(const grid* g, grid_context* ctx);
 // Time complexity: O(V) = O(cell_count), space complexity: O(1)
 PREPROC_DEF void grid_good_start(const grid* g, grid_context* ctx);
 
@@ -304,16 +310,41 @@ PREPROC_DEF void grid_components(const grid* g, grid_context* ctx) {
 
 }
 
-PREPROC_DEF void grid_neighbour_count(const grid* g, grid_context* ctx) {
+PREPROC_DEF void grid_calculate_neighbours(const grid* g, grid_context* ctx) {
     for (size_t u = 0; u < g->cell_count; ++u) {
         if (grid_at_flat(g, u) != CELL_FREE) continue;
+
+        ctx->cells[u].neighbour_north = NO_NEIGHBOUR;
+        ctx->cells[u].neighbour_south = NO_NEIGHBOUR;
+        ctx->cells[u].neighbour_east  = NO_NEIGHBOUR;
+        ctx->cells[u].neighbour_west  = NO_NEIGHBOUR;
+
         uint8_t count = 0;
-        for (direction d = 0; d < DIRECTION_COUNT; ++d) {
-            size_t n_idx = cell_neighbour_idx(u, d, g->cols, g->cell_count);
-            if (n_idx == CELL_NONE_IDX) continue;
-            if (grid_at_flat(g, n_idx) != CELL_FREE) continue;
+
+        size_t n_idx = cell_neighbour_idx(u, DIRECTION_NORTH, g->cols, g->cell_count);
+        if (n_idx != CELL_NONE_IDX && grid_at_flat(g, n_idx) == CELL_FREE) {
+            ctx->cells[u].neighbour_north = n_idx;
             ++count;
         }
+
+        n_idx = cell_neighbour_idx(u, DIRECTION_SOUTH, g->cols, g->cell_count);
+        if (n_idx != CELL_NONE_IDX && grid_at_flat(g, n_idx) == CELL_FREE) {
+            ctx->cells[u].neighbour_south = n_idx;
+            ++count;
+        }
+
+        n_idx = cell_neighbour_idx(u, DIRECTION_EAST, g->cols, g->cell_count);
+        if (n_idx != CELL_NONE_IDX && grid_at_flat(g, n_idx) == CELL_FREE) {
+            ctx->cells[u].neighbour_east = n_idx;
+            ++count;
+        }
+
+        n_idx = cell_neighbour_idx(u, DIRECTION_WEST, g->cols, g->cell_count);
+        if (n_idx != CELL_NONE_IDX && grid_at_flat(g, n_idx) == CELL_FREE) {
+            ctx->cells[u].neighbour_west = n_idx;
+            ++count;
+        }
+
         ctx->cells[u].neighbour_count = count;
     }
 }
@@ -368,7 +399,7 @@ PREPROC_DEF grid_context* grid_preprocess(const grid* g) {
 
     grid_cut_vertices(g, ctx);
     grid_components(g, ctx);
-    grid_neighbour_count(g, ctx);
+    grid_calculate_neighbours(g, ctx);
     grid_good_start(g, ctx);
 
     return ctx;

@@ -520,14 +520,14 @@ TEST(grid_components, burger) {
 
 // 1x1 free
 // .
-TEST(grid_neighbour_count, single_free_cell) {
+TEST(grid_calculate_neighbours, single_free_cell) {
     // Arrange
     grid* g = grid_new(1, 1);
     EXPECT_TRUE(g != NULL);
     grid_context* ctx = grid_context_new(g->cell_count, g->cols);
     EXPECT_TRUE(ctx != NULL);
     // Act
-    grid_neighbour_count(g, ctx);
+    grid_calculate_neighbours(g, ctx);
     // Assert
     EXPECT_EQ(ctx->cells[0].neighbour_count, 0);
     grid_free(g);
@@ -536,14 +536,14 @@ TEST(grid_neighbour_count, single_free_cell) {
 
 // 1x3 open strip
 // ...
-TEST(grid_neighbour_count, strip_1x3) {
+TEST(grid_calculate_neighbours, strip_1x3) {
     // Arrange
     grid* g = grid_new(1, 3);
     EXPECT_TRUE(g != NULL);
     grid_context* ctx = grid_context_new(g->cell_count, g->cols);
     EXPECT_TRUE(ctx != NULL);
     // Act
-    grid_neighbour_count(g, ctx);
+    grid_calculate_neighbours(g, ctx);
     // Assert
     EXPECT_EQ(ctx->cells[0].neighbour_count, 1);
     EXPECT_EQ(ctx->cells[1].neighbour_count, 2);
@@ -554,14 +554,14 @@ TEST(grid_neighbour_count, strip_1x3) {
 
 // 1x4 open strip
 // ....
-TEST(grid_neighbour_count, strip_1x4) {
+TEST(grid_calculate_neighbours, strip_1x4) {
     // Arrange
     grid* g = grid_new(1, 4);
     EXPECT_TRUE(g != NULL);
     grid_context* ctx = grid_context_new(g->cell_count, g->cols);
     EXPECT_TRUE(ctx != NULL);
     // Act
-    grid_neighbour_count(g, ctx);
+    grid_calculate_neighbours(g, ctx);
     // Assert
     EXPECT_EQ(ctx->cells[0].neighbour_count, 1);
     EXPECT_EQ(ctx->cells[1].neighbour_count, 2);
@@ -575,7 +575,7 @@ TEST(grid_neighbour_count, strip_1x4) {
 // #.#
 // ...
 // #.#
-TEST(grid_neighbour_count, cross_center_is_cut) {
+TEST(grid_calculate_neighbours, cross_center_is_cut) {
     // Arrange
     grid* g = grid_new(3, 3);
     EXPECT_TRUE(g != NULL);
@@ -584,7 +584,7 @@ TEST(grid_neighbour_count, cross_center_is_cut) {
     grid_context* ctx = grid_context_new(g->cell_count, g->cols);
     EXPECT_TRUE(ctx != NULL);
     // Act
-    grid_neighbour_count(g, ctx);
+    grid_calculate_neighbours(g, ctx);
     // Assert
     EXPECT_EQ(ctx->cells[4].neighbour_count, 4);
     EXPECT_EQ(ctx->cells[1].neighbour_count, 1);
@@ -599,14 +599,14 @@ TEST(grid_neighbour_count, cross_center_is_cut) {
 // 2x3 open rectangle
 // ...
 // ...
-TEST(grid_neighbour_count, solid_2x3_no_cut) {
+TEST(grid_calculate_neighbours, solid_2x3_no_cut) {
     // Arrange
     grid* g = grid_new(2, 3);
     EXPECT_TRUE(g != NULL);
     grid_context* ctx = grid_context_new(g->cell_count, g->cols);
     EXPECT_TRUE(ctx != NULL);
     // Act
-    grid_neighbour_count(g, ctx);
+    grid_calculate_neighbours(g, ctx);
     // Assert
     EXPECT_EQ(ctx->cells[0].neighbour_count, 2);
     EXPECT_EQ(ctx->cells[1].neighbour_count, 3);
@@ -622,14 +622,14 @@ TEST(grid_neighbour_count, solid_2x3_no_cut) {
 // ...
 // ...
 // ...
-TEST(grid_neighbour_count, solid_3x3_no_cut) {
+TEST(grid_calculate_neighbours, solid_3x3_no_cut) {
     // Arrange
     grid* g = grid_new(3, 3);
     EXPECT_TRUE(g != NULL);
     grid_context* ctx = grid_context_new(g->cell_count, g->cols);
     EXPECT_TRUE(ctx != NULL);
     // Act
-    grid_neighbour_count(g, ctx);
+    grid_calculate_neighbours(g, ctx);
     // Assert
     EXPECT_EQ(ctx->cells[0].neighbour_count, 2);
     EXPECT_EQ(ctx->cells[1].neighbour_count, 3);
@@ -648,7 +648,7 @@ TEST(grid_neighbour_count, solid_3x3_no_cut) {
 // ###
 // ...
 // ###
-TEST(grid_neighbour_count, burger) {
+TEST(grid_calculate_neighbours, burger) {
     // Arrange
     grid* g = grid_new(3, 3);
     EXPECT_TRUE(g != NULL);
@@ -657,12 +657,58 @@ TEST(grid_neighbour_count, burger) {
     grid_context* ctx = grid_context_new(g->cell_count, g->cols);
     EXPECT_TRUE(ctx != NULL);
     // Act
-    grid_neighbour_count(g, ctx);
+    grid_calculate_neighbours(g, ctx);
     // Assert
     EXPECT_EQ(ctx->cells[3].neighbour_count, 1);
     EXPECT_EQ(ctx->cells[4].neighbour_count, 2);
     EXPECT_EQ(ctx->cells[5].neighbour_count, 1);
     EXPECT_EQ(ctx->cells[0].neighbour_count, 0);
+    grid_free(g);
+    grid_context_free(ctx);
+}
+
+// 1x1 free, all neighbours are SIZE_MAX
+// .
+TEST(grid_calculate_neighbours, single_cell_indices) {
+    // Arrange
+    grid* g = grid_new(1, 1);
+    EXPECT_TRUE(g != NULL);
+    grid_context* ctx = grid_context_new(g->cell_count, g->cols);
+    EXPECT_TRUE(ctx != NULL);
+    // Act
+    grid_calculate_neighbours(g, ctx);
+    // Assert
+    EXPECT_SIZE_EQ(ctx->cells[0].neighbour_north, SIZE_MAX);
+    EXPECT_SIZE_EQ(ctx->cells[0].neighbour_south, SIZE_MAX);
+    EXPECT_SIZE_EQ(ctx->cells[0].neighbour_east,  SIZE_MAX);
+    EXPECT_SIZE_EQ(ctx->cells[0].neighbour_west,  SIZE_MAX);
+    EXPECT_EQ(ctx->cells[0].neighbour_count, 0);
+    grid_free(g);
+    grid_context_free(ctx);
+}
+
+// 1x3 strip, check neighbour indices for end and middle cells
+// ...
+TEST(grid_calculate_neighbours, strip_1x3_indices) {
+    // Arrange
+    grid* g = grid_new(1, 3);
+    EXPECT_TRUE(g != NULL);
+    grid_context* ctx = grid_context_new(g->cell_count, g->cols);
+    EXPECT_TRUE(ctx != NULL);
+    // Act
+    grid_calculate_neighbours(g, ctx);
+    // Assert
+    EXPECT_SIZE_EQ(ctx->cells[0].neighbour_east,  1);
+    EXPECT_SIZE_EQ(ctx->cells[0].neighbour_west,  SIZE_MAX);
+    EXPECT_EQ(ctx->cells[0].neighbour_count, 1);
+
+    EXPECT_SIZE_EQ(ctx->cells[1].neighbour_west,  0);
+    EXPECT_SIZE_EQ(ctx->cells[1].neighbour_east,  2);
+    EXPECT_EQ(ctx->cells[1].neighbour_count, 2);
+
+    EXPECT_SIZE_EQ(ctx->cells[2].neighbour_west,  1);
+    EXPECT_SIZE_EQ(ctx->cells[2].neighbour_east,  SIZE_MAX);
+    EXPECT_EQ(ctx->cells[2].neighbour_count, 1);
     grid_free(g);
     grid_context_free(ctx);
 }
@@ -678,7 +724,7 @@ TEST(grid_good_start, single_free_cell) {
     // Act
     grid_cut_vertices(g, ctx);
     grid_components(g, ctx);
-    grid_neighbour_count(g, ctx);
+    grid_calculate_neighbours(g, ctx);
     grid_good_start(g, ctx);
     // Assert
     EXPECT_TRUE(ctx->cells[0].is_good_start);
@@ -697,7 +743,7 @@ TEST(grid_good_start, strip_1x3) {
     // Act
     grid_cut_vertices(g, ctx);
     grid_components(g, ctx);
-    grid_neighbour_count(g, ctx);
+    grid_calculate_neighbours(g, ctx);
     grid_good_start(g, ctx);
     // Assert
     EXPECT_TRUE(ctx->cells[0].is_good_start);
@@ -718,7 +764,7 @@ TEST(grid_good_start, strip_1x4) {
     // Act
     grid_cut_vertices(g, ctx);
     grid_components(g, ctx);
-    grid_neighbour_count(g, ctx);
+    grid_calculate_neighbours(g, ctx);
     grid_good_start(g, ctx);
     // Assert
     EXPECT_TRUE(ctx->cells[0].is_good_start);
@@ -744,7 +790,7 @@ TEST(grid_good_start, cross_center_is_cut) {
     // Act
     grid_cut_vertices(g, ctx);
     grid_components(g, ctx);
-    grid_neighbour_count(g, ctx);
+    grid_calculate_neighbours(g, ctx);
     grid_good_start(g, ctx);
     // Assert
     EXPECT_FALSE(ctx->cells[4].is_good_start);
@@ -768,7 +814,7 @@ TEST(grid_good_start, solid_2x3_no_cut) {
     // Act
     grid_cut_vertices(g, ctx);
     grid_components(g, ctx);
-    grid_neighbour_count(g, ctx);
+    grid_calculate_neighbours(g, ctx);
     grid_good_start(g, ctx);
     // Assert
     EXPECT_TRUE(ctx->cells[0].is_good_start);
@@ -794,7 +840,7 @@ TEST(grid_good_start, solid_3x3_no_cut) {
     // Act
     grid_cut_vertices(g, ctx);
     grid_components(g, ctx);
-    grid_neighbour_count(g, ctx);
+    grid_calculate_neighbours(g, ctx);
     grid_good_start(g, ctx);
     // Assert
     EXPECT_TRUE(ctx->cells[0].is_good_start);
@@ -825,7 +871,7 @@ TEST(grid_good_start, burger) {
     // Act
     grid_cut_vertices(g, ctx);
     grid_components(g, ctx);
-    grid_neighbour_count(g, ctx);
+    grid_calculate_neighbours(g, ctx);
     grid_good_start(g, ctx);
     // Assert
     EXPECT_TRUE(ctx->cells[3].is_good_start);
@@ -910,13 +956,15 @@ int main(void) {
     RUN_TEST(grid_components, solid_2x3_no_cut);
     RUN_TEST(grid_components, solid_3x3_no_cut);
     RUN_TEST(grid_components, burger);
-    RUN_TEST(grid_neighbour_count, single_free_cell);
-    RUN_TEST(grid_neighbour_count, strip_1x3);
-    RUN_TEST(grid_neighbour_count, strip_1x4);
-    RUN_TEST(grid_neighbour_count, cross_center_is_cut);
-    RUN_TEST(grid_neighbour_count, solid_2x3_no_cut);
-    RUN_TEST(grid_neighbour_count, solid_3x3_no_cut);
-    RUN_TEST(grid_neighbour_count, burger);
+    RUN_TEST(grid_calculate_neighbours, single_free_cell);
+    RUN_TEST(grid_calculate_neighbours, strip_1x3);
+    RUN_TEST(grid_calculate_neighbours, strip_1x4);
+    RUN_TEST(grid_calculate_neighbours, cross_center_is_cut);
+    RUN_TEST(grid_calculate_neighbours, solid_2x3_no_cut);
+    RUN_TEST(grid_calculate_neighbours, solid_3x3_no_cut);
+    RUN_TEST(grid_calculate_neighbours, burger);
+    RUN_TEST(grid_calculate_neighbours, single_cell_indices);
+    RUN_TEST(grid_calculate_neighbours, strip_1x3_indices);
     RUN_TEST(grid_good_start, single_free_cell);
     RUN_TEST(grid_good_start, strip_1x3);
     RUN_TEST(grid_good_start, strip_1x4);
