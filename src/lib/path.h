@@ -47,6 +47,9 @@ typedef struct {
     cell cells[];
 } path;
 
+#define path_empty(p) ((p)->size == 0)
+#define path_full(p)  ((p)->size == (p)->capacity)
+
 PATH_DEF path* path_new(size_t capacity);
 PATH_DEF void  path_free(path* p);
 PATH_DEF bool  path_push(path* p, cell c);
@@ -132,20 +135,23 @@ PATH_DEF void path_free(path* p) {
 }
 
 PATH_DEF bool path_push(path* p, cell c) {
-    if (p->size >= p->capacity) return false;
+    if (path_full(p)) return false;
     p->cells[p->size++] = c;
     return true;
 }
 
 PATH_DEF cell path_pop(path* p) {
+    if (path_empty(p)) return CELL_NONE;
     return p->cells[--p->size];
 }
 
 PATH_DEF cell path_top(const path* p) {
+    if (path_empty(p)) return CELL_NONE;
     return p->cells[p->size - 1];
 }
 
 PATH_DEF cell path_at(const path* p, size_t i) {
+    if (i >= p->size) return CELL_NONE;
     return p->cells[i];
 }
 

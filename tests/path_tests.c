@@ -198,7 +198,7 @@ TEST(path, new_size_t_overflow) {
     EXPECT_TRUE(p == NULL);
 }
 
-TEST(path, append) {
+TEST(path, push_works) {
     // Arrange
     path* p = path_new(3);
     cell c0 = cell_from_row_col(0, 0, 3);
@@ -229,21 +229,7 @@ TEST(path, push_order) {
     path_free(p);
 }
 
-TEST(path, last) {
-    // Arrange
-    path* p = path_new(4);
-    cell c0 = cell_from_row_col(0, 0, 4);
-    cell c1 = cell_from_row_col(2, 3, 4);
-    // Act
-    // Assert
-    EXPECT_TRUE(path_push(p, c0));
-    EXPECT_TRUE(path_push(p, c1));
-    EXPECT_TRUE(cell_eq(path_top(p), c1));
-    EXPECT_SIZE_EQ(p->size, 2);
-    path_free(p);
-}
-
-TEST(path, remove_last) {
+TEST(path, pop_works) {
     // Arrange
     path* p = path_new(4);
     cell c0 = cell_from_row_col(0, 0, 4);
@@ -257,6 +243,53 @@ TEST(path, remove_last) {
     EXPECT_TRUE(cell_eq(popped, c1));
     EXPECT_SIZE_EQ(p->size, 1);
     EXPECT_TRUE(cell_eq(path_top(p), c0));
+    path_free(p);
+}
+
+TEST(path, pop_on_empty) {
+    // Arrange
+    path* p = path_new(1);
+    EXPECT_SIZE_EQ(p->size, 0);
+    // Act
+    cell popped = path_pop(p);
+    // Assert
+    EXPECT_TRUE(cell_eq(popped, CELL_NONE));
+    EXPECT_SIZE_EQ(p->size, 0);
+    path_free(p);
+}
+
+TEST(path, top_works) {
+    // Arrange
+    path* p = path_new(4);
+    cell c0 = cell_from_row_col(0, 0, 4);
+    cell c1 = cell_from_row_col(2, 3, 4);
+    // Act
+    // Assert
+    EXPECT_TRUE(path_push(p, c0));
+    EXPECT_TRUE(path_push(p, c1));
+    EXPECT_TRUE(cell_eq(path_top(p), c1));
+    EXPECT_SIZE_EQ(p->size, 2);
+    path_free(p);
+}
+
+TEST(path, top_on_empty) {
+    // Arrange
+    path* p = path_new(1);
+    // Act
+    // Assert
+    EXPECT_TRUE(cell_eq(path_top(p), CELL_NONE));
+    EXPECT_SIZE_EQ(p->size, 0);
+    path_free(p);
+}
+
+TEST(path, at_exceeding_size) {
+    // Arrange
+    path* p = path_new(1);
+    // Act
+    // Assert
+    EXPECT_TRUE(cell_eq(path_at(p, 0), CELL_NONE));
+    EXPECT_TRUE(cell_eq(path_at(p, 1), CELL_NONE));
+    EXPECT_TRUE(cell_eq(path_at(p, 10000), CELL_NONE));
     path_free(p);
 }
 
@@ -438,10 +471,13 @@ int main(void) {
     RUN_TEST(path_new_small);
     RUN_TEST(path_new_zero);
     RUN_TEST(path_new_size_t_overflow);
-    RUN_TEST(path_append);
+    RUN_TEST(path_push_works);
     RUN_TEST(path_push_order);
-    RUN_TEST(path_last);
-    RUN_TEST(path_remove_last);
+    RUN_TEST(path_pop_works);
+    RUN_TEST(path_pop_on_empty);
+    RUN_TEST(path_top_works);
+    RUN_TEST(path_top_on_empty);
+    RUN_TEST(path_at_exceeding_size);
     RUN_TEST(path_clear_reset);
     RUN_TEST(path_copy_into);
     RUN_TEST(path_copy_small_dst);
