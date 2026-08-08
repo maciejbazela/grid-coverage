@@ -32,7 +32,7 @@ $(BUILD_DIR)/%.o: src/%.c
 define run_tests
 	@for test in $(TEST_BINS); do \
 		echo "\nFile: $$test"; \
-		$$test || exit $$?; \
+		$(1) $$test || exit $$?; \
 	done
 endef
 
@@ -42,7 +42,7 @@ test: $(TEST_BINS)
 
 debug_test: override CFLAGS := $(TEST_CFLAGS) -g3 -DDEBUG
 debug_test: $(TEST_BINS)
-	$(call run_tests)
+	$(call run_tests,valgrind --leak-check=full)
 
 $(TEST_BUILD_DIR)/%: $(TEST_DIR)/%.c
 	@mkdir -p $(dir $@)

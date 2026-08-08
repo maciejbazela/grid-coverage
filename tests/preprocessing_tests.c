@@ -835,6 +835,54 @@ TEST(grid_good_start, burger) {
     grid_context_free(ctx);
 }
 
+// 3x3 open square, full pipeline smoke test
+// ...
+// ...
+// ...
+TEST(grid_preprocess, solid_3x3) {
+    // Arrange
+    grid* g = grid_new(3, 3);
+    EXPECT_TRUE(g != NULL);
+    // Act
+    grid_context* ctx = grid_preprocess(g);
+    // Assert
+    EXPECT_TRUE(ctx != NULL);
+    EXPECT_SIZE_EQ(ctx->component_count, 1);
+    EXPECT_SIZE_EQ(ctx->component_sizes[1], 9);
+    EXPECT_TRUE(ctx->cells[0].is_good_start);
+    EXPECT_FALSE(ctx->cells[4].is_good_start);
+    grid_free(g);
+    grid_context_free(ctx);
+}
+
+// 1x3 strip, full pipeline smoke test
+// ...
+TEST(grid_preprocess, strip_1x3) {
+    // Arrange
+    grid* g = grid_new(1, 3);
+    EXPECT_TRUE(g != NULL);
+    // Act
+    grid_context* ctx = grid_preprocess(g);
+    // Assert
+    EXPECT_TRUE(ctx != NULL);
+    EXPECT_FALSE(ctx->cells[0].is_cut_vertex);
+    EXPECT_TRUE(ctx->cells[1].is_cut_vertex);
+    EXPECT_SIZE_EQ(ctx->component_count, 2);
+    EXPECT_TRUE(ctx->cells[0].is_good_start);
+    EXPECT_TRUE(ctx->cells[2].is_good_start);
+    grid_free(g);
+    grid_context_free(ctx);
+}
+
+// NULL grid returns NULL
+TEST(grid_preprocess, null_grid) {
+    // Arrange
+    // Act
+    grid_context* ctx = grid_preprocess(NULL);
+    // Assert
+    EXPECT_TRUE(ctx == NULL);
+}
+
 int main(void) {
     RUN_TEST(grid_context, new_small);
     RUN_TEST(grid_context, new_zero_dimensions);
@@ -876,5 +924,8 @@ int main(void) {
     RUN_TEST(grid_good_start, solid_2x3_no_cut);
     RUN_TEST(grid_good_start, solid_3x3_no_cut);
     RUN_TEST(grid_good_start, burger);
+    RUN_TEST(grid_preprocess, solid_3x3);
+    RUN_TEST(grid_preprocess, strip_1x3);
+    RUN_TEST(grid_preprocess, null_grid);
     return test_summary();
 }

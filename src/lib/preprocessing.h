@@ -39,15 +39,15 @@ PREPROC_DEF grid_context* grid_context_copy(const grid_context* src);
 
 // Time complexity: O(V + E) = O(cell_count), space complexity: O(V) = O(cell_count)
 PREPROC_DEF void grid_cut_vertices(const grid* g, grid_context* ctx);
-
 // Time complexity: O(V + E) = O(cell_count), space complexity: O(V) = O(cell_count)
 PREPROC_DEF void grid_components(const grid* g, grid_context* ctx);
-
 // Time complexity: O(V) = O(cell_count), space complexity: O(1)
 PREPROC_DEF void grid_neighbour_count(const grid* g, grid_context* ctx);
-
 // Time complexity: O(V) = O(cell_count), space complexity: O(1)
 PREPROC_DEF void grid_good_start(const grid* g, grid_context* ctx);
+
+// Combine all preprocessing steps
+PREPROC_DEF grid_context* grid_preprocess(const grid* g);
 
 #ifdef PREPROC_IMPL
 
@@ -359,6 +359,19 @@ PREPROC_DEF void grid_good_start(const grid* g, grid_context* ctx) {
             DEBUG_PRINT("[good_start] marking %zu as good start\n", i);
         }
     }
+}
+
+PREPROC_DEF grid_context* grid_preprocess(const grid* g) {
+    if (g == NULL) return NULL;
+    grid_context* ctx = grid_context_new(g->cell_count, g->cols);
+    if (ctx == NULL) return NULL;
+
+    grid_cut_vertices(g, ctx);
+    grid_components(g, ctx);
+    grid_neighbour_count(g, ctx);
+    grid_good_start(g, ctx);
+
+    return ctx;
 }
 
 #endif // PREPROC_IMPL
