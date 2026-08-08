@@ -12,8 +12,9 @@ OBJS := $(patsubst src/%.c,$(BUILD_DIR)/%.o,$(SRCS))
 
 TEST_SRCS := $(wildcard $(TEST_DIR)/*.c)
 TEST_BINS := $(patsubst $(TEST_DIR)/%.c,$(TEST_BUILD_DIR)/%,$(TEST_SRCS))
+TEST_CFLAGS := $(filter-out -O%,$(CFLAGS)) -O0
 
-.PHONY: all clean debug rebuild test
+.PHONY: all clean debug debug_test rebuild test
 all: $(TARGET)
 rebuild: clean $(TARGET)
 
@@ -28,12 +29,20 @@ $(BUILD_DIR)/%.o: src/%.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-test: CFLAGS += -O0 -g3
-test: $(TEST_BINS)
+define run_tests
 	@for test in $(TEST_BINS); do \
 		echo "\nFile: $$test"; \
 		$$test || exit $$?; \
 	done
+endef
+
+test: override CFLAGS := $(TEST_CFLAGS)
+test: $(TEST_BINS)
+	$(call run_tests)
+
+debug_test: override CFLAGS := $(TEST_CFLAGS) -g3 -DDEBUG
+debug_test: $(TEST_BINS)
+	$(call run_tests)
 
 $(TEST_BUILD_DIR)/%: $(TEST_DIR)/%.c
 	@mkdir -p $(dir $@)

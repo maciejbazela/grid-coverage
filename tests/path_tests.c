@@ -71,14 +71,14 @@ TEST(cell, none) {
     EXPECT_EQ(CELL_NONE.idx, SIZE_MAX);
 }
 
-TEST(cell, neighbor_of) {
+TEST(cell, neighbour_of) {
     // Arrange
     cell center = cell_from_row_col(1, 1, 3);
     // Act
-    cell north_neighbour = cell_neighbor(center, DIRECTION_NORTH, 3, 9);
-    cell east_neighbour  = cell_neighbor(center, DIRECTION_EAST, 3, 9);
-    cell south_neighbour = cell_neighbor(center, DIRECTION_SOUTH, 3, 9);
-    cell west_neighbour  = cell_neighbor(center, DIRECTION_WEST, 3, 9);
+    cell north_neighbour = cell_neighbour(center, DIRECTION_NORTH, 3, 9);
+    cell east_neighbour  = cell_neighbour(center, DIRECTION_EAST, 3, 9);
+    cell south_neighbour = cell_neighbour(center, DIRECTION_SOUTH, 3, 9);
+    cell west_neighbour  = cell_neighbour(center, DIRECTION_WEST, 3, 9);
     // Assert
     EXPECT_TRUE(cell_eq(north_neighbour, cell_from_row_col(0, 1, 3)));
     EXPECT_TRUE(cell_eq(east_neighbour,  cell_from_row_col(1, 2, 3)));
@@ -86,19 +86,19 @@ TEST(cell, neighbor_of) {
     EXPECT_TRUE(cell_eq(west_neighbour,  cell_from_row_col(1, 0, 3)));
 }
 
-TEST(cell, neighbor_out_of_bounds) {
+TEST(cell, neighbour_out_of_bounds) {
     // Arrange
     cell top_left  = cell_from_row_col(0, 0, 3);
     cell past_end = (cell){ .idx = 9 };
     // Act
-    cell top_left_north = cell_neighbor(top_left, DIRECTION_NORTH, 3, 9);
-    cell top_left_west  = cell_neighbor(top_left, DIRECTION_WEST, 3, 9);
-    cell top_left_south = cell_neighbor(top_left, DIRECTION_SOUTH, 3, 9);
-    cell top_left_east  = cell_neighbor(top_left, DIRECTION_EAST, 3, 9);
-    cell past_end_north = cell_neighbor(past_end, DIRECTION_NORTH, 3, 9);
-    cell past_end_east  = cell_neighbor(past_end, DIRECTION_EAST, 3, 9);
-    cell past_end_south = cell_neighbor(past_end, DIRECTION_SOUTH, 3, 9);
-    cell past_end_west  = cell_neighbor(past_end, DIRECTION_WEST, 3, 9);
+    cell top_left_north = cell_neighbour(top_left, DIRECTION_NORTH, 3, 9);
+    cell top_left_west  = cell_neighbour(top_left, DIRECTION_WEST, 3, 9);
+    cell top_left_south = cell_neighbour(top_left, DIRECTION_SOUTH, 3, 9);
+    cell top_left_east  = cell_neighbour(top_left, DIRECTION_EAST, 3, 9);
+    cell past_end_north = cell_neighbour(past_end, DIRECTION_NORTH, 3, 9);
+    cell past_end_east  = cell_neighbour(past_end, DIRECTION_EAST, 3, 9);
+    cell past_end_south = cell_neighbour(past_end, DIRECTION_SOUTH, 3, 9);
+    cell past_end_west  = cell_neighbour(past_end, DIRECTION_WEST, 3, 9);
     // Assert
     EXPECT_TRUE(cell_eq(top_left_north, CELL_NONE));
     EXPECT_TRUE(cell_eq(top_left_west, CELL_NONE));
@@ -486,8 +486,8 @@ int main(void) {
     RUN_TEST(cell, row_of_col_of_all_cells);
     RUN_TEST(cell, equality);
     RUN_TEST(cell, none);
-    RUN_TEST(cell, neighbor_of);
-    RUN_TEST(cell, neighbor_out_of_bounds);
+    RUN_TEST(cell, neighbour_of);
+    RUN_TEST(cell, neighbour_out_of_bounds);
     RUN_TEST(direction, row_deltas);
     RUN_TEST(direction, col_deltas);
     RUN_TEST(direction, arrows);

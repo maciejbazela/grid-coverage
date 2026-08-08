@@ -17,7 +17,8 @@ typedef struct {
     size_t idx;
 } cell;
 
-#define CELL_NONE ((cell){ .idx = SIZE_MAX })
+#define CELL_NONE_IDX SIZE_MAX
+#define CELL_NONE ((cell){ .idx = CELL_NONE_IDX })
 
 #define DIRECTION_COUNT 4
 
@@ -40,7 +41,8 @@ PATH_DEF cell   cell_from_row_col(size_t row, size_t col, size_t cols);
 PATH_DEF size_t cell_row(cell c, size_t cols);
 PATH_DEF size_t cell_col(cell c, size_t cols);
 PATH_DEF bool   cell_eq(cell a, cell b);
-PATH_DEF cell   cell_neighbor(cell c, direction d, size_t cols, size_t cell_count);
+PATH_DEF size_t cell_neighbour_idx(size_t idx, direction d, size_t cols, size_t cell_count);
+PATH_DEF cell   cell_neighbour(cell c, direction d, size_t cols, size_t cell_count);
 
 typedef struct {
     size_t size, capacity;
@@ -106,15 +108,19 @@ PATH_DEF bool cell_eq(cell a, cell b) {
     return a.idx == b.idx;
 }
 
-PATH_DEF cell cell_neighbor(cell c, direction d, size_t cols, size_t cell_count) {
-    if (d >= DIRECTION_COUNT) return CELL_NONE;
-    if (cols == 0 || c.idx >= cell_count) return CELL_NONE;
+PATH_DEF size_t cell_neighbour_idx(size_t idx, direction d, size_t cols, size_t cell_count) {
+    if (d >= DIRECTION_COUNT) return CELL_NONE_IDX;
+    if (cols == 0 || idx >= cell_count) return CELL_NONE_IDX;
     int64_t const delta = direction_row_delta(d) * (int64_t) cols + direction_col_delta(d);
-    if (delta == 1  && c.idx % cols == cols - 1) return CELL_NONE;
-    if (delta == -1 && c.idx % cols == 0)        return CELL_NONE;
-    int64_t const n = (int64_t) c.idx + delta;
-    if (n < 0 || (uint64_t) n >= (uint64_t) cell_count) return CELL_NONE;
-    return (cell) { .idx = (size_t) n };
+    if (delta == 1  && idx % cols == cols - 1) return CELL_NONE_IDX;
+    if (delta == -1 && idx % cols == 0)        return CELL_NONE_IDX;
+    int64_t const n_idx = (int64_t) idx + delta;
+    if (n_idx < 0 || (uint64_t) n_idx >= (uint64_t) cell_count) return CELL_NONE_IDX;
+    return n_idx;
+}
+
+PATH_DEF cell cell_neighbour(cell c, direction d, size_t cols, size_t cell_count) {
+    return (cell) { .idx = cell_neighbour_idx(c.idx, d, cols, cell_count) };
 }
 
 PATH_DEF path* path_new(size_t capacity) {

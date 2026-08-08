@@ -5,13 +5,7 @@
 #include <stdlib.h>
 #include <limits.h>
 
-#include "./lib/debug.h"
-
-#define STRING_VIEW_IMPL
-#include "./lib/string_view.h"
-
-#define GRID_IMPL
-#include "./lib/grid.h"
+#include "./lib/lib.h"
 
 static bool parse_int(string_view sv, int32_t* out) {
     char  buf[64];
