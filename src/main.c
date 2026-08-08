@@ -1,9 +1,11 @@
 #include <errno.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
 #include <limits.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
 #include "./lib/lib.h"
 
@@ -196,18 +198,76 @@ static grid* parse_grid_file(const char* path) {
     return g;
 }
 
+static path* random_wrapper(const grid* g, size_t max_steps, cell start, const grid_context* ctx) {
+    return walk_solve_random(g, max_steps, start, ctx, (unsigned) time(NULL));
+}
+
 int main(int argc, char* argv[]) {
-    if (argc == 1) {
-        grid* g = parse_grid_stdin();
-        if (g == NULL) return EXIT_FAILURE;
-        grid_print(g);
-        grid_free(g);
+    if (argc < 3) {
+        printf("Usage: %s ALGORITHM MAX_STEPS [file_path]\n", argv[0]);
+        printf("  ALGORITHM: deep, random, warnsdorff, heuristic\n");
+        return EXIT_FAILURE;
     }
+
+    const char* algo_name = argv[1];
+    int32_t parsed_steps;
+    if (!parse_int(sv_from_cstr(argv[2]), &parsed_steps) || parsed_steps < 0) {
+        printf("Invalid MAX_STEPS: %s\n", argv[2]);
+        return EXIT_FAILURE;
+    }
+    size_t max_steps = (size_t) parsed_steps;
+
+    grid* g;
+    if (argc >= 4)
+        g = parse_grid_file(argv[3]);
+    else
+        g = parse_grid_stdin();
+    if (g == NULL) return EXIT_FAILURE;
+
+    grid_context* ctx = grid_preprocess(g);
+    if (ctx == NULL) {
+        grid_free(g);
+        return EXIT_FAILURE;
+    }
+
+    traverse_fn inner;
+    if (strcmp(algo_name, "deep") == 0)
+        inner = walk_solve_deep;
+    else if (strcmp(algo_name, "random") == 0)
+        inner = random_wrapper;
+    else if (strcmp(algo_name, "warnsdorff") == 0)
+        inner = walk_solve_warnsdorff;
+    else if (strcmp(algo_name, "heuristic") == 0)
+        inner = walk_solve_heuristic;
     else {
-        grid* g = parse_grid_file(argv[1]);
-        if (g == NULL) return EXIT_FAILURE;
-        grid_print(g);
+        printf("Unknown algorithm: %s\n", algo_name);
+        grid_context_free(ctx);
         grid_free(g);
+        return EXIT_FAILURE;
     }
+    printf("Running %s from all good starts\n", algo_name);
+    path* p = walk_solve_multistart(g, max_steps - 1, inner, ctx);
+    if (p == NULL) {
+        printf("No path found\n");
+        grid_context_free(ctx);
+        grid_free(g);
+        return EXIT_FAILURE;
+    }
+
+    for (size_t i = 0; i < p->size; ++i) {
+        cell c = path_at(p, i);
+        printf("(%zu, %zu)", cell_row(c, g->cols), cell_col(c, g->cols));
+        if (i + 1 < p->size) printf(", ");
+    }
+    printf(", %zu\n", path_unique_cells(p));
+
+#ifdef DEBUG
+    if (g->cols <= 200 && g->rows <= 400)
+        path_print_on_grid(p, g);
+#endif
+
+    path_free(p);
+    grid_context_free(ctx);
+    grid_free(g);
     return EXIT_SUCCESS;
 }

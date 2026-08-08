@@ -110,6 +110,66 @@ TEST(cell, neighbour_out_of_bounds) {
     EXPECT_TRUE(cell_eq(past_end_south, CELL_NONE));
 }
 
+TEST(cell, neighbour_idx_center) {
+    // Arrange
+    // Act
+    size_t north = cell_neighbour_idx(4, DIRECTION_NORTH, 3, 9);
+    size_t east  = cell_neighbour_idx(4, DIRECTION_EAST,  3, 9);
+    size_t south = cell_neighbour_idx(4, DIRECTION_SOUTH, 3, 9);
+    size_t west  = cell_neighbour_idx(4, DIRECTION_WEST,  3, 9);
+    // Assert
+    EXPECT_SIZE_EQ(north, 1);
+    EXPECT_SIZE_EQ(east,  5);
+    EXPECT_SIZE_EQ(south, 7);
+    EXPECT_SIZE_EQ(west,  3);
+}
+
+TEST(cell, neighbour_idx_top_left) {
+    // Arrange
+    // Act
+    size_t north = cell_neighbour_idx(0, DIRECTION_NORTH, 3, 9);
+    size_t west  = cell_neighbour_idx(0, DIRECTION_WEST,  3, 9);
+    size_t south = cell_neighbour_idx(0, DIRECTION_SOUTH, 3, 9);
+    size_t east  = cell_neighbour_idx(0, DIRECTION_EAST,  3, 9);
+    // Assert
+    EXPECT_SIZE_EQ(north, CELL_NONE_IDX);
+    EXPECT_SIZE_EQ(west,  CELL_NONE_IDX);
+    EXPECT_SIZE_EQ(south, 3);
+    EXPECT_SIZE_EQ(east,  1);
+}
+
+TEST(cell, neighbour_idx_wrap_prevent_east) {
+    // Arrange
+    // Act
+    size_t n = cell_neighbour_idx(2, DIRECTION_EAST, 3, 9);
+    // Assert
+    EXPECT_SIZE_EQ(n, CELL_NONE_IDX);
+}
+
+TEST(cell, neighbour_idx_wrap_prevent_west) {
+    // Arrange
+    // Act
+    size_t n = cell_neighbour_idx(3, DIRECTION_WEST, 3, 9);
+    // Assert
+    EXPECT_SIZE_EQ(n, CELL_NONE_IDX);
+}
+
+TEST(cell, neighbour_idx_out_of_bounds) {
+    // Arrange
+    // Act
+    size_t n = cell_neighbour_idx(9, DIRECTION_SOUTH, 3, 9);
+    // Assert
+    EXPECT_SIZE_EQ(n, CELL_NONE_IDX);
+}
+
+TEST(cell, neighbour_idx_invalid_direction) {
+    // Arrange
+    // Act
+    size_t n = cell_neighbour_idx(4, DIRECTION_INVALID, 3, 9);
+    // Assert
+    EXPECT_SIZE_EQ(n, CELL_NONE_IDX);
+}
+
 TEST(direction, row_deltas) {
     // Arrange
     // Act
@@ -478,6 +538,111 @@ TEST(path, print_on_grid_smoke_test_with_backtrack) {
     path_free(p);
 }
 
+TEST(path, unique_cells_empty) {
+    // Arrange
+    path* p = path_new(4);
+    // Act
+    size_t unique = path_unique_cells(p);
+    // Assert
+    EXPECT_SIZE_EQ(unique, 0);
+    path_free(p);
+}
+
+TEST(path, unique_cells_single) {
+    // Arrange
+    path* p = path_new(4);
+    cell c0 = cell_from_row_col(0, 0, 4);
+    path_push(p, c0);
+    // Act
+    size_t unique = path_unique_cells(p);
+    // Assert
+    EXPECT_SIZE_EQ(unique, 1);
+    path_free(p);
+}
+
+TEST(path, unique_cells_all_distinct) {
+    // Arrange
+    path* p = path_new(4);
+    path_push(p, cell_from_row_col(0, 0, 4));
+    path_push(p, cell_from_row_col(0, 1, 4));
+    path_push(p, cell_from_row_col(0, 2, 4));
+    // Act
+    size_t unique = path_unique_cells(p);
+    // Assert
+    EXPECT_SIZE_EQ(unique, 3);
+    EXPECT_SIZE_EQ(p->size, 3);
+    path_free(p);
+}
+
+TEST(path, unique_cells_with_backtrack) {
+    // Arrange
+    path* p = path_new(8);
+    path_push(p, cell_from_row_col(0, 0, 4));
+    path_push(p, cell_from_row_col(0, 1, 4));
+    path_push(p, cell_from_row_col(0, 2, 4));
+    path_push(p, cell_from_row_col(0, 1, 4));
+    path_push(p, cell_from_row_col(0, 0, 4));
+    // Act
+    size_t unique = path_unique_cells(p);
+    // Assert
+    EXPECT_SIZE_EQ(unique, 3);
+    EXPECT_SIZE_EQ(p->size, 5);
+    path_free(p);
+}
+
+TEST(path, unique_cells_same_cell_repeated) {
+    // Arrange
+    path* p = path_new(8);
+    path_push(p, cell_from_row_col(0, 0, 4));
+    path_push(p, cell_from_row_col(0, 0, 4));
+    path_push(p, cell_from_row_col(0, 0, 4));
+    // Act
+    size_t unique = path_unique_cells(p);
+    // Assert
+    EXPECT_SIZE_EQ(unique, 1);
+    EXPECT_SIZE_EQ(p->size, 3);
+    path_free(p);
+}
+
+TEST(path, push_idx_works) {
+    // Arrange
+    path* p = path_new(3);
+    // Act
+    bool ok = path_push_idx(p, 42);
+    // Assert
+    EXPECT_TRUE(ok);
+    EXPECT_SIZE_EQ(p->size, 1);
+    EXPECT_TRUE(cell_eq(path_top(p), (cell){ .idx = 42 }));
+    path_free(p);
+}
+
+TEST(path, push_idx_full) {
+    // Arrange
+    path* p = path_new(1);
+    path_push_idx(p, 0);
+    // Act
+    bool ok = path_push_idx(p, 1);
+    // Assert
+    EXPECT_FALSE(ok);
+    EXPECT_SIZE_EQ(p->size, 1);
+    path_free(p);
+}
+
+TEST(path, push_idx_and_push_consistent) {
+    // Arrange
+    path* p = path_new(4);
+    // Act
+    path_push_idx(p, 10);
+    path_push(p, (cell){ .idx = 20 });
+    path_push_idx(p, 30);
+    // Assert
+    EXPECT_SIZE_EQ(p->size, 3);
+    EXPECT_TRUE(cell_eq(path_at(p, 0), (cell){ .idx = 10 }));
+    EXPECT_TRUE(cell_eq(path_at(p, 1), (cell){ .idx = 20 }));
+    EXPECT_TRUE(cell_eq(path_at(p, 2), (cell){ .idx = 30 }));
+    path_free(p);
+}
+
 int main(void) {
     RUN_TEST(cell, from_row_column);
     RUN_TEST(cell, from_row_column_zero);
@@ -488,6 +653,12 @@ int main(void) {
     RUN_TEST(cell, none);
     RUN_TEST(cell, neighbour_of);
     RUN_TEST(cell, neighbour_out_of_bounds);
+    RUN_TEST(cell, neighbour_idx_center);
+    RUN_TEST(cell, neighbour_idx_top_left);
+    RUN_TEST(cell, neighbour_idx_wrap_prevent_east);
+    RUN_TEST(cell, neighbour_idx_wrap_prevent_west);
+    RUN_TEST(cell, neighbour_idx_out_of_bounds);
+    RUN_TEST(cell, neighbour_idx_invalid_direction);
     RUN_TEST(direction, row_deltas);
     RUN_TEST(direction, col_deltas);
     RUN_TEST(direction, arrows);
@@ -509,6 +680,14 @@ int main(void) {
     RUN_TEST(path, copy_into);
     RUN_TEST(path, copy_small_dst);
     RUN_TEST(path, large);
+    RUN_TEST(path, unique_cells_empty);
+    RUN_TEST(path, unique_cells_single);
+    RUN_TEST(path, unique_cells_all_distinct);
+    RUN_TEST(path, unique_cells_with_backtrack);
+    RUN_TEST(path, unique_cells_same_cell_repeated);
+    RUN_TEST(path, push_idx_works);
+    RUN_TEST(path, push_idx_full);
+    RUN_TEST(path, push_idx_and_push_consistent);
     RUN_TEST(path, print_smoke_test);
     RUN_TEST(path, print_smoke_test_with_long_cols);
     RUN_TEST(path, print_on_grid_smoke_test);

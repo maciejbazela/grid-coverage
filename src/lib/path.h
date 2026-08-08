@@ -54,6 +54,7 @@ typedef struct {
 
 PATH_DEF path* path_new(size_t capacity);
 PATH_DEF void  path_free(path* p);
+PATH_DEF bool  path_push_idx(path* p, size_t idx);
 PATH_DEF bool  path_push(path* p, cell c);
 PATH_DEF cell  path_pop(path* p);
 PATH_DEF cell  path_top(const path* p);
@@ -61,7 +62,8 @@ PATH_DEF cell  path_at(const path* p, size_t i);
 PATH_DEF bool  path_copy(path* dst, const path* src);
 PATH_DEF void  path_clear(path* p);
 PATH_DEF void  path_print(const path* p, size_t cols);
-PATH_DEF void  path_print_on_grid(const path* p, const grid* g);
+PATH_DEF size_t path_unique_cells(const path* p);
+PATH_DEF void   path_print_on_grid(const path* p, const grid* g);
 
 #ifdef PATH_IMPL
 
@@ -146,6 +148,10 @@ PATH_DEF bool path_push(path* p, cell c) {
     return true;
 }
 
+PATH_DEF bool path_push_idx(path* p, size_t idx) {
+    return path_push(p, (cell){ .idx = idx });
+}
+
 PATH_DEF cell path_pop(path* p) {
     if (path_empty(p)) return CELL_NONE;
     return p->cells[--p->size];
@@ -190,6 +196,23 @@ PATH_DEF void path_print(const path* p, size_t cols) {
     }
     // Last cell without comma
     printf("(%ld, %ld)\n}\n", cell_row(p->cells[p->size - 1], cols), cell_col(p->cells[p->size - 1], cols));
+}
+
+PATH_DEF size_t path_unique_cells(const path* p) {
+    if (p->size == 0) return 0;
+
+    size_t unique = 0;
+    for (size_t i = 0; i < p->size; ++i) {
+        bool first_occurrence = true;
+        for (size_t j = 0; j < i; ++j) {
+            if (cell_eq(path_at(p, i), path_at(p, j))) {
+                first_occurrence = false;
+                break;
+            }
+        }
+        if (first_occurrence) ++unique;
+    }
+    return unique;
 }
 
 PATH_DEF void path_print_on_grid(const path* p, const grid* g) {

@@ -22,3 +22,6 @@
 
 #define PREPROC_IMPL
 #include "preprocessing.h"
+
+#define WALK_IMPL
+#include "walk.h"

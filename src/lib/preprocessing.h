@@ -238,7 +238,6 @@ PREPROC_DEF size_t grid_components_discover(const grid* g, grid_context* ctx, si
 
 PREPROC_DEF void grid_components_cut_distance(const grid* g, grid_context* ctx) {
     queue* q = queue_new(g->cell_count);
-
     // Multi-source BFS, start from all cut vertices
     for (size_t u = 0; u < g->cell_count; ++u) {
         if (!ctx->cells[u].is_cut_vertex) continue;
@@ -256,7 +255,6 @@ PREPROC_DEF void grid_components_cut_distance(const grid* g, grid_context* ctx) 
             queue_push(q, w);
         }
     }
-
     // Calculate distances from cut vertices
     while (!queue_empty(q)) {
         size_t   v      = queue_pop(q);
@@ -274,7 +272,6 @@ PREPROC_DEF void grid_components_cut_distance(const grid* g, grid_context* ctx) 
             queue_push(q, w);
         }
     }
-
     // Cells never reached by any BFS belong to components with no adjacent cut vertex
     for (size_t u = 0; u < g->cell_count; ++u) {
         if (grid_at_flat(g, u) != CELL_FREE) continue;
