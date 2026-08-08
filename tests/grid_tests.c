@@ -30,6 +30,13 @@ TEST(grid, new_empty_cells) {
     grid_free(g);
 }
 
+TEST(grid, free_null) {
+    // Arrange
+    // Act
+    grid_free(NULL);
+    // Assert
+}
+
 TEST(grid, set_cell) {
     // Arrange
     grid* g = grid_new(3, 3);
@@ -216,22 +223,23 @@ TEST(grid, print_smoke_test) {
 }
 
 int main(void) {
-    RUN_TEST(grid_new_small);
-    RUN_TEST(grid_new_empty_cells);
-    RUN_TEST(grid_set_cell);
-    RUN_TEST(grid_set_multiple_cells);
-    RUN_TEST(grid_set_out_of_bounds_row);
-    RUN_TEST(grid_set_out_of_bounds_col);
-    RUN_TEST(grid_get_unset_cell);
-    RUN_TEST(grid_overwrite_cell);
-    RUN_TEST(grid_zero_dimensions);
-    RUN_TEST(grid_large_grid);
-    RUN_TEST(grid_non_square_stride);
-    RUN_TEST(grid_non_square_stride_corner);
-    RUN_TEST(grid_flat_index);
-    RUN_TEST(grid_flat_index_out_of_bounds);
-    RUN_TEST(grid_flat_matches);
-    RUN_TEST(grid_states_distinct);
-    RUN_TEST(grid_print_smoke_test);
+    RUN_TEST(grid, new_small);
+    RUN_TEST(grid, new_empty_cells);
+    RUN_TEST(grid, free_null);
+    RUN_TEST(grid, set_cell);
+    RUN_TEST(grid, set_multiple_cells);
+    RUN_TEST(grid, set_out_of_bounds_row);
+    RUN_TEST(grid, set_out_of_bounds_col);
+    RUN_TEST(grid, get_unset_cell);
+    RUN_TEST(grid, overwrite_cell);
+    RUN_TEST(grid, zero_dimensions);
+    RUN_TEST(grid, large_grid);
+    RUN_TEST(grid, non_square_stride);
+    RUN_TEST(grid, non_square_stride_corner);
+    RUN_TEST(grid, flat_index);
+    RUN_TEST(grid, flat_index_out_of_bounds);
+    RUN_TEST(grid, flat_matches);
+    RUN_TEST(grid, states_distinct);
+    RUN_TEST(grid, print_smoke_test);
     return test_summary();
 }

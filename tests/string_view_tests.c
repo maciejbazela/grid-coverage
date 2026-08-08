@@ -238,26 +238,26 @@ TEST(string_view, copy_cstr_empty) {
 }
 
 int main(void) {
-    RUN_TEST(string_view_from_cstr);
-    RUN_TEST(string_view_left_trim);
-    RUN_TEST(string_view_left_trim_no_whitespace);
-    RUN_TEST(string_view_left_trim_all_whitespace);
-    RUN_TEST(string_view_right_trim);
-    RUN_TEST(string_view_right_trim_no_whitespace);
-    RUN_TEST(string_view_right_trim_all_whitespace);
-    RUN_TEST(string_view_trim);
-    RUN_TEST(string_view_trim_empty);
-    RUN_TEST(string_view_get_word);
-    RUN_TEST(string_view_get_word_single);
-    RUN_TEST(string_view_get_word_empty);
-    RUN_TEST(string_view_get_word_whitespace);
-    RUN_TEST(string_view_skip_word);
-    RUN_TEST(string_view_skip_word_single);
-    RUN_TEST(string_view_skip_word_empty);
-    RUN_TEST(string_view_copy_cstr);
-    RUN_TEST(string_view_copy_cstr_exact_size);
-    RUN_TEST(string_view_copy_cstr_too_small);
-    RUN_TEST(string_view_copy_cstr_empty);
+    RUN_TEST(string_view, from_cstr);
+    RUN_TEST(string_view, left_trim);
+    RUN_TEST(string_view, left_trim_no_whitespace);
+    RUN_TEST(string_view, left_trim_all_whitespace);
+    RUN_TEST(string_view, right_trim);
+    RUN_TEST(string_view, right_trim_no_whitespace);
+    RUN_TEST(string_view, right_trim_all_whitespace);
+    RUN_TEST(string_view, trim);
+    RUN_TEST(string_view, trim_empty);
+    RUN_TEST(string_view, get_word);
+    RUN_TEST(string_view, get_word_single);
+    RUN_TEST(string_view, get_word_empty);
+    RUN_TEST(string_view, get_word_whitespace);
+    RUN_TEST(string_view, skip_word);
+    RUN_TEST(string_view, skip_word_single);
+    RUN_TEST(string_view, skip_word_empty);
+    RUN_TEST(string_view, copy_cstr);
+    RUN_TEST(string_view, copy_cstr_exact_size);
+    RUN_TEST(string_view, copy_cstr_too_small);
+    RUN_TEST(string_view, copy_cstr_empty);
     return test_summary();
 }
 

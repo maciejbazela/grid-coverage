@@ -198,6 +198,13 @@ TEST(path, new_size_t_overflow) {
     EXPECT_TRUE(p == NULL);
 }
 
+TEST(path, free_null) {
+    // Arrange
+    // Act
+    path_free(NULL);
+    // Assert
+}
+
 TEST(path, push_works) {
     // Arrange
     path* p = path_new(3);
@@ -307,6 +314,24 @@ TEST(path, clear_reset) {
     EXPECT_TRUE(path_push(p, c1));
     EXPECT_SIZE_EQ(p->size, 1);
     EXPECT_TRUE(cell_eq(path_top(p), c1));
+    path_free(p);
+}
+
+TEST(path, empty_and_full) {
+    // Arrange
+    path* p = path_new(2);
+    cell c0 = cell_from_row_col(0, 0, 4);
+    cell c1 = cell_from_row_col(1, 1, 4);
+    // Act
+    // Assert
+    EXPECT_TRUE(path_empty(p));
+    EXPECT_FALSE(path_full(p));
+    path_push(p, c0);
+    EXPECT_FALSE(path_empty(p));
+    EXPECT_FALSE(path_full(p));
+    path_push(p, c1);
+    EXPECT_FALSE(path_empty(p));
+    EXPECT_TRUE(path_full(p));
     path_free(p);
 }
 
@@ -454,38 +479,40 @@ TEST(path, print_on_grid_smoke_test_with_backtrack) {
 }
 
 int main(void) {
-    RUN_TEST(cell_from_row_column);
-    RUN_TEST(cell_from_row_column_zero);
-    RUN_TEST(cell_row_of);
-    RUN_TEST(cell_col_of);
-    RUN_TEST(cell_row_of_col_of_all_cells);
-    RUN_TEST(cell_equality);
-    RUN_TEST(cell_none);
-    RUN_TEST(cell_neighbor_of);
-    RUN_TEST(cell_neighbor_out_of_bounds);
-    RUN_TEST(direction_row_deltas);
-    RUN_TEST(direction_col_deltas);
-    RUN_TEST(direction_arrows);
-    RUN_TEST(direction_between_cells);
-    RUN_TEST(direction_between_invalid);
-    RUN_TEST(path_new_small);
-    RUN_TEST(path_new_zero);
-    RUN_TEST(path_new_size_t_overflow);
-    RUN_TEST(path_push_works);
-    RUN_TEST(path_push_order);
-    RUN_TEST(path_pop_works);
-    RUN_TEST(path_pop_on_empty);
-    RUN_TEST(path_top_works);
-    RUN_TEST(path_top_on_empty);
-    RUN_TEST(path_at_exceeding_size);
-    RUN_TEST(path_clear_reset);
-    RUN_TEST(path_copy_into);
-    RUN_TEST(path_copy_small_dst);
-    RUN_TEST(path_large);
-    RUN_TEST(path_print_smoke_test);
-    RUN_TEST(path_print_smoke_test_with_long_cols);
-    RUN_TEST(path_print_on_grid_smoke_test);
-    RUN_TEST(path_print_on_grid_smoke_test_with_invalid);
-    RUN_TEST(path_print_on_grid_smoke_test_with_backtrack);
+    RUN_TEST(cell, from_row_column);
+    RUN_TEST(cell, from_row_column_zero);
+    RUN_TEST(cell, row_of);
+    RUN_TEST(cell, col_of);
+    RUN_TEST(cell, row_of_col_of_all_cells);
+    RUN_TEST(cell, equality);
+    RUN_TEST(cell, none);
+    RUN_TEST(cell, neighbor_of);
+    RUN_TEST(cell, neighbor_out_of_bounds);
+    RUN_TEST(direction, row_deltas);
+    RUN_TEST(direction, col_deltas);
+    RUN_TEST(direction, arrows);
+    RUN_TEST(direction, between_cells);
+    RUN_TEST(direction, between_invalid);
+    RUN_TEST(path, new_small);
+    RUN_TEST(path, new_zero);
+    RUN_TEST(path, new_size_t_overflow);
+    RUN_TEST(path, free_null);
+    RUN_TEST(path, push_works);
+    RUN_TEST(path, push_order);
+    RUN_TEST(path, pop_works);
+    RUN_TEST(path, pop_on_empty);
+    RUN_TEST(path, top_works);
+    RUN_TEST(path, top_on_empty);
+    RUN_TEST(path, at_exceeding_size);
+    RUN_TEST(path, clear_reset);
+    RUN_TEST(path, empty_and_full);
+    RUN_TEST(path, copy_into);
+    RUN_TEST(path, copy_small_dst);
+    RUN_TEST(path, large);
+    RUN_TEST(path, print_smoke_test);
+    RUN_TEST(path, print_smoke_test_with_long_cols);
+    RUN_TEST(path, print_on_grid_smoke_test);
+    RUN_TEST(path, print_on_grid_smoke_test_with_invalid);
+    RUN_TEST(path, print_on_grid_smoke_test_with_backtrack);
     return test_summary();
 }

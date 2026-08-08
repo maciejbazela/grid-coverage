@@ -58,8 +58,8 @@ PATH_DEF cell  path_top(const path* p);
 PATH_DEF cell  path_at(const path* p, size_t i);
 PATH_DEF bool  path_copy(path* dst, const path* src);
 PATH_DEF void  path_clear(path* p);
-PATH_DEF void  path_print(path* p, size_t cols);
-PATH_DEF void  path_print_on_grid(path* p, grid* g);
+PATH_DEF void  path_print(const path* p, size_t cols);
+PATH_DEF void  path_print_on_grid(const path* p, const grid* g);
 
 #ifdef PATH_IMPL
 
@@ -168,7 +168,7 @@ PATH_DEF void path_clear(path* p) {
 
 #define PATH_PRINT_MAX_ROW 8
 
-PATH_DEF void path_print(path* p, size_t cols) {
+PATH_DEF void path_print(const path* p, size_t cols) {
     printf("Path(%ld) {\n", p->size);
     printf("    ");
     size_t in_row = 0;
@@ -186,7 +186,7 @@ PATH_DEF void path_print(path* p, size_t cols) {
     printf("(%ld, %ld)\n}\n", cell_row(p->cells[p->size - 1], cols), cell_col(p->cells[p->size - 1], cols));
 }
 
-PATH_DEF void path_print_on_grid(path* p, grid* g) {
+PATH_DEF void path_print_on_grid(const path* p, const grid* g) {
     char* const buf = malloc(g->cell_count);
     if (buf == NULL) return;
 

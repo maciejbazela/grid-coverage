@@ -24,9 +24,9 @@ typedef enum {
 GRID_DEF grid*      grid_new(size_t rows, size_t cols);
 GRID_DEF void       grid_free(grid* g);
 GRID_DEF bool       grid_set(grid* g, size_t row, size_t col);
-GRID_DEF cell_state grid_at(grid* g, size_t row, size_t col);
-GRID_DEF cell_state grid_at_flat(grid* g, size_t idx);
-GRID_DEF void       grid_print(grid* g);
+GRID_DEF cell_state grid_at(const grid* g, size_t row, size_t col);
+GRID_DEF cell_state grid_at_flat(const grid* g, size_t idx);
+GRID_DEF void       grid_print(const grid* g);
 
 #ifdef GRID_IMPL
 
@@ -55,18 +55,18 @@ GRID_DEF bool grid_set(grid* g, size_t row, size_t col) {
     return true;
 }
 
-GRID_DEF cell_state grid_at(grid* g, size_t row, size_t col) {
+GRID_DEF cell_state grid_at(const grid* g, size_t row, size_t col) {
     if (row >= g->rows || col >= g->cols) return CELL_OUT_OF_BOUNDS;
     size_t stride = row * g->cols + col;
     return g->cells[stride] ? CELL_BLOCKED : CELL_FREE;
 }
 
-GRID_DEF cell_state grid_at_flat(grid* g, size_t idx) {
+GRID_DEF cell_state grid_at_flat(const grid* g, size_t idx) {
     if (idx >= g->cell_count) return CELL_OUT_OF_BOUNDS;
     return g->cells[idx] ? CELL_BLOCKED : CELL_FREE;
 }
 
-GRID_DEF void grid_print(grid* g) {
+GRID_DEF void grid_print(const grid* g) {
     printf("Grid(%ld, %ld) {\n", g->rows, g->cols);
     for (size_t row = 0; row < g->rows; ++row) {
         printf("  ");

@@ -14,10 +14,10 @@ static unsigned int total_tests = 0;
     } \
     static void object##_##func(void)
 
-#define RUN_TEST(func) \
+#define RUN_TEST(object, func) \
     do { \
         total_tests++; \
-        run_##func(); \
+        run_##object##_##func(); \
     } while (0)
 
 #define EXPECT_EQ(a, b) \
