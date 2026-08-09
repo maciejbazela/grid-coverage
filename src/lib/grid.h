@@ -71,6 +71,14 @@ GRID_DEF bool grid_set(grid* g, size_t row, size_t col) {
     return true;
 }
 
+GRID_DEF bool grid_unset(grid* g, size_t row, size_t col) {
+    if (row >= g->rows) return false;
+    if (col >= g->cols) return false;
+    size_t stride = row * g->cols + col;
+    g->cells[stride] = false;
+    return true;
+}
+
 GRID_DEF cell_state grid_at(const grid* g, size_t row, size_t col) {
     if (row >= g->rows || col >= g->cols) return CELL_OUT_OF_BOUNDS;
     size_t stride = row * g->cols + col;

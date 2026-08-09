@@ -323,6 +323,7 @@ TEST(grid_components, single_free_cell) {
     EXPECT_TRUE(ctx != NULL);
     // Act
     grid_cut_vertices(g, ctx);
+    grid_cut_distances(g, ctx);
     grid_components(g, ctx);
     // Assert
     EXPECT_SIZE_EQ(ctx->component_count, 1);
@@ -348,6 +349,7 @@ TEST(grid_components, all_blocked) {
     EXPECT_TRUE(ctx != NULL);
     // Act
     grid_cut_vertices(g, ctx);
+    grid_cut_distances(g, ctx);
     grid_components(g, ctx);
     // Assert
     EXPECT_SIZE_EQ(ctx->component_count, 0);
@@ -368,16 +370,16 @@ TEST(grid_components, strip_1x3) {
     EXPECT_TRUE(ctx != NULL);
     // Act
     grid_cut_vertices(g, ctx);
+    grid_cut_distances(g, ctx);
     grid_components(g, ctx);
     // Assert
-    EXPECT_SIZE_EQ(ctx->component_count, 2);
-    EXPECT_SIZE_EQ(ctx->component_sizes[1], 1);
-    EXPECT_SIZE_EQ(ctx->component_sizes[2], 1);
+    EXPECT_SIZE_EQ(ctx->component_count, 1);
+    EXPECT_SIZE_EQ(ctx->component_sizes[1], 3);
     EXPECT_EQ(ctx->cells[0].component_id, 1u);
     EXPECT_EQ(ctx->cells[0].cut_distance, 1u);
-    EXPECT_EQ(ctx->cells[1].component_id, 0u);
+    EXPECT_EQ(ctx->cells[1].component_id, 1u);
     EXPECT_EQ(ctx->cells[1].cut_distance, 0u);
-    EXPECT_EQ(ctx->cells[2].component_id, 2u);
+    EXPECT_EQ(ctx->cells[2].component_id, 1u);
     EXPECT_EQ(ctx->cells[2].cut_distance, 1u);
     grid_free(g);
     grid_context_free(ctx);
@@ -393,18 +395,18 @@ TEST(grid_components, strip_1x4) {
     EXPECT_TRUE(ctx != NULL);
     // Act
     grid_cut_vertices(g, ctx);
+    grid_cut_distances(g, ctx);
     grid_components(g, ctx);
     // Assert
-    EXPECT_SIZE_EQ(ctx->component_count, 2);
-    EXPECT_SIZE_EQ(ctx->component_sizes[1], 1);
-    EXPECT_SIZE_EQ(ctx->component_sizes[2], 1);
+    EXPECT_SIZE_EQ(ctx->component_count, 1);
+    EXPECT_SIZE_EQ(ctx->component_sizes[1], 4);
     EXPECT_EQ(ctx->cells[0].component_id, 1u);
     EXPECT_EQ(ctx->cells[0].cut_distance, 1u);
-    EXPECT_EQ(ctx->cells[1].component_id, 0u);
+    EXPECT_EQ(ctx->cells[1].component_id, 1u);
     EXPECT_EQ(ctx->cells[1].cut_distance, 0u);
-    EXPECT_EQ(ctx->cells[2].component_id, 0u);
+    EXPECT_EQ(ctx->cells[2].component_id, 1u);
     EXPECT_EQ(ctx->cells[2].cut_distance, 0u);
-    EXPECT_EQ(ctx->cells[3].component_id, 2u);
+    EXPECT_EQ(ctx->cells[3].component_id, 1u);
     EXPECT_EQ(ctx->cells[3].cut_distance, 1u);
     grid_free(g);
     grid_context_free(ctx);
@@ -424,22 +426,20 @@ TEST(grid_components, cross_center_is_cut) {
     EXPECT_TRUE(ctx != NULL);
     // Act
     grid_cut_vertices(g, ctx);
+    grid_cut_distances(g, ctx);
     grid_components(g, ctx);
     // Assert
-    EXPECT_SIZE_EQ(ctx->component_count, 4);
-    EXPECT_SIZE_EQ(ctx->component_sizes[1], 1);
-    EXPECT_SIZE_EQ(ctx->component_sizes[2], 1);
-    EXPECT_SIZE_EQ(ctx->component_sizes[3], 1);
-    EXPECT_SIZE_EQ(ctx->component_sizes[4], 1);
-    EXPECT_EQ(ctx->cells[4].component_id, 0u);
+    EXPECT_SIZE_EQ(ctx->component_count, 1);
+    EXPECT_SIZE_EQ(ctx->component_sizes[1], 5);
+    EXPECT_EQ(ctx->cells[4].component_id, 1u);
     EXPECT_EQ(ctx->cells[4].cut_distance, 0u);
     EXPECT_EQ(ctx->cells[1].component_id, 1u);
     EXPECT_EQ(ctx->cells[1].cut_distance, 1u);
-    EXPECT_EQ(ctx->cells[3].component_id, 2u);
+    EXPECT_EQ(ctx->cells[3].component_id, 1u);
     EXPECT_EQ(ctx->cells[3].cut_distance, 1u);
-    EXPECT_EQ(ctx->cells[5].component_id, 3u);
+    EXPECT_EQ(ctx->cells[5].component_id, 1u);
     EXPECT_EQ(ctx->cells[5].cut_distance, 1u);
-    EXPECT_EQ(ctx->cells[7].component_id, 4u);
+    EXPECT_EQ(ctx->cells[7].component_id, 1u);
     EXPECT_EQ(ctx->cells[7].cut_distance, 1u);
     grid_free(g);
     grid_context_free(ctx);
@@ -456,6 +456,7 @@ TEST(grid_components, solid_2x3_no_cut) {
     EXPECT_TRUE(ctx != NULL);
     // Act
     grid_cut_vertices(g, ctx);
+    grid_cut_distances(g, ctx);
     grid_components(g, ctx);
     // Assert
     EXPECT_SIZE_EQ(ctx->component_count, 1);
@@ -480,6 +481,7 @@ TEST(grid_components, solid_3x3_no_cut) {
     EXPECT_TRUE(ctx != NULL);
     // Act
     grid_cut_vertices(g, ctx);
+    grid_cut_distances(g, ctx);
     grid_components(g, ctx);
     // Assert
     EXPECT_SIZE_EQ(ctx->component_count, 1);
@@ -506,16 +508,16 @@ TEST(grid_components, burger) {
     EXPECT_TRUE(ctx != NULL);
     // Act
     grid_cut_vertices(g, ctx);
+    grid_cut_distances(g, ctx);
     grid_components(g, ctx);
     // Assert
-    EXPECT_SIZE_EQ(ctx->component_count, 2);
-    EXPECT_SIZE_EQ(ctx->component_sizes[1], 1);
-    EXPECT_SIZE_EQ(ctx->component_sizes[2], 1);
+    EXPECT_SIZE_EQ(ctx->component_count, 1);
+    EXPECT_SIZE_EQ(ctx->component_sizes[1], 3);
     EXPECT_EQ(ctx->cells[3].component_id, 1u);
     EXPECT_EQ(ctx->cells[3].cut_distance, 1u);
-    EXPECT_EQ(ctx->cells[4].component_id, 0u);
+    EXPECT_EQ(ctx->cells[4].component_id, 1u);
     EXPECT_EQ(ctx->cells[4].cut_distance, 0u);
-    EXPECT_EQ(ctx->cells[5].component_id, 2u);
+    EXPECT_EQ(ctx->cells[5].component_id, 1u);
     EXPECT_EQ(ctx->cells[5].cut_distance, 1u);
     grid_free(g);
     grid_context_free(ctx);
@@ -726,6 +728,7 @@ TEST(grid_good_start, single_free_cell) {
     EXPECT_TRUE(ctx != NULL);
     // Act
     grid_cut_vertices(g, ctx);
+    grid_cut_distances(g, ctx);
     grid_components(g, ctx);
     grid_calculate_neighbours(g, ctx);
     grid_good_start(g, ctx);
@@ -745,6 +748,7 @@ TEST(grid_good_start, strip_1x3) {
     EXPECT_TRUE(ctx != NULL);
     // Act
     grid_cut_vertices(g, ctx);
+    grid_cut_distances(g, ctx);
     grid_components(g, ctx);
     grid_calculate_neighbours(g, ctx);
     grid_good_start(g, ctx);
@@ -766,6 +770,7 @@ TEST(grid_good_start, strip_1x4) {
     EXPECT_TRUE(ctx != NULL);
     // Act
     grid_cut_vertices(g, ctx);
+    grid_cut_distances(g, ctx);
     grid_components(g, ctx);
     grid_calculate_neighbours(g, ctx);
     grid_good_start(g, ctx);
@@ -792,6 +797,7 @@ TEST(grid_good_start, cross_center_is_cut) {
     EXPECT_TRUE(ctx != NULL);
     // Act
     grid_cut_vertices(g, ctx);
+    grid_cut_distances(g, ctx);
     grid_components(g, ctx);
     grid_calculate_neighbours(g, ctx);
     grid_good_start(g, ctx);
@@ -816,6 +822,7 @@ TEST(grid_good_start, solid_2x3_no_cut) {
     EXPECT_TRUE(ctx != NULL);
     // Act
     grid_cut_vertices(g, ctx);
+    grid_cut_distances(g, ctx);
     grid_components(g, ctx);
     grid_calculate_neighbours(g, ctx);
     grid_good_start(g, ctx);
@@ -842,6 +849,7 @@ TEST(grid_good_start, solid_3x3_no_cut) {
     EXPECT_TRUE(ctx != NULL);
     // Act
     grid_cut_vertices(g, ctx);
+    grid_cut_distances(g, ctx);
     grid_components(g, ctx);
     grid_calculate_neighbours(g, ctx);
     grid_good_start(g, ctx);
@@ -873,6 +881,7 @@ TEST(grid_good_start, burger) {
     EXPECT_TRUE(ctx != NULL);
     // Act
     grid_cut_vertices(g, ctx);
+    grid_cut_distances(g, ctx);
     grid_components(g, ctx);
     grid_calculate_neighbours(g, ctx);
     grid_good_start(g, ctx);
@@ -916,7 +925,8 @@ TEST(grid_preprocess, strip_1x3) {
     EXPECT_TRUE(ctx != NULL);
     EXPECT_FALSE(ctx->cells[0].is_cut_vertex);
     EXPECT_TRUE(ctx->cells[1].is_cut_vertex);
-    EXPECT_SIZE_EQ(ctx->component_count, 2);
+    EXPECT_SIZE_EQ(ctx->component_count, 1);
+    EXPECT_SIZE_EQ(ctx->component_sizes[1], 3);
     EXPECT_TRUE(ctx->cells[0].is_good_start);
     EXPECT_TRUE(ctx->cells[2].is_good_start);
     grid_free(g);

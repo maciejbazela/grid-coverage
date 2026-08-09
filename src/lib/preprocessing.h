@@ -46,6 +46,8 @@ PREPROC_DEF grid_context* grid_context_copy(const grid_context* src);
 // Time complexity: O(V + E) = O(cell_count), space complexity: O(V) = O(cell_count)
 PREPROC_DEF void grid_cut_vertices(const grid* g, grid_context* ctx);
 // Time complexity: O(V + E) = O(cell_count), space complexity: O(V) = O(cell_count)
+PREPROC_DEF void grid_cut_distances(const grid* g, grid_context* ctx);
+// Time complexity: O(V + E) = O(cell_count), space complexity: O(V) = O(cell_count)
 PREPROC_DEF void grid_components(const grid* g, grid_context* ctx);
 // Time complexity: O(V) = O(cell_count), space complexity: O(1)
 PREPROC_DEF void grid_calculate_neighbours(const grid* g, grid_context* ctx);
@@ -203,40 +205,8 @@ PREPROC_DEF void grid_cut_vertices(const grid* g, grid_context* ctx) {
     stack_free(s);
     free(state);
 }
-static size_t grid_components_discover(const grid* g, grid_context* ctx, size_t comp_id) {
-    stack* s = stack_new(g->cell_count);
-    for (size_t u = 0; u < g->cell_count; ++u) {
-        if (grid_at_flat(g, u) != CELL_FREE) continue;
-        if (ctx->cells[u].component_id != 0) continue;
-        if (ctx->cells[u].is_cut_vertex)     continue; // Cut vertices act as blocked
 
-        DEBUG_PRINT("[components] start DFS comp %zu from %zu\n", comp_id, u);
-
-        stack_push(s, u);
-        ctx->cells[u].component_id = comp_id;
-
-        while (!stack_empty(s)) {
-            size_t v = stack_pop(s);
-
-            for (direction d = 0; d < DIRECTION_COUNT; ++d) {
-                size_t n_idx = cell_neighbour_idx(v, d, g->cols, g->cell_count);
-                if (n_idx == CELL_NONE_IDX) continue;
-                size_t w = n_idx;
-                if (grid_at_flat(g, w) != CELL_FREE) continue;
-                if (ctx->cells[w].component_id != 0) continue;
-                if (ctx->cells[w].is_cut_vertex)     continue;
-
-                ctx->cells[w].component_id = comp_id;
-                stack_push(s, w);
-            }
-        }
-        ++comp_id;
-    }
-    stack_free(s);
-    return comp_id;
-}
-
-static void grid_components_cut_distance(const grid* g, grid_context* ctx) {
+PREPROC_DEF void grid_cut_distances(const grid* g, grid_context* ctx) {
     queue* q = queue_new(g->cell_count);
     // Multi-source BFS, start from all cut vertices
     for (size_t u = 0; u < g->cell_count; ++u) {
@@ -285,10 +255,33 @@ static void grid_components_cut_distance(const grid* g, grid_context* ctx) {
 
 PREPROC_DEF void grid_components(const grid* g, grid_context* ctx) {
     size_t comp_id = 1;
-    // Phase 1: DFS to discover components, cut vertices act as blocked
-    comp_id = grid_components_discover(g, ctx, comp_id);
-    // Phase 2: BFS from all cut vertices to assign distance to nearest cut vertex
-    grid_components_cut_distance(g, ctx);
+    stack* s = stack_new(g->cell_count);
+    for (size_t u = 0; u < g->cell_count; ++u) {
+        if (grid_at_flat(g, u) != CELL_FREE) continue;
+        if (ctx->cells[u].component_id != 0) continue;
+
+        DEBUG_PRINT("[components] start DFS comp %zu from %zu\n", comp_id, u);
+
+        stack_push(s, u);
+        ctx->cells[u].component_id = comp_id;
+
+        while (!stack_empty(s)) {
+            size_t v = stack_pop(s);
+
+            for (direction d = 0; d < DIRECTION_COUNT; ++d) {
+                size_t n_idx = cell_neighbour_idx(v, d, g->cols, g->cell_count);
+                if (n_idx == CELL_NONE_IDX) continue;
+                size_t w = n_idx;
+                if (grid_at_flat(g, w) != CELL_FREE) continue;
+                if (ctx->cells[w].component_id != 0) continue;
+
+                ctx->cells[w].component_id = comp_id;
+                stack_push(s, w);
+            }
+        }
+        ++comp_id;
+    }
+    stack_free(s);
 
     DEBUG_PRINT("[components] total components: %zu\n", comp_id - 1);
 
@@ -359,20 +352,18 @@ PREPROC_DEF void grid_good_start(const grid* g, grid_context* ctx) {
         size_t   comp_size    = ctx->component_sizes[ctx->cells[i].component_id];
         uint32_t cut_distance   = ctx->cells[i].cut_distance;
 
-        // 1. Smallest neighbour_count - starting from dead-ends and corners reduce forced backtrack paths
-        if (neighbours < best_neighbours) {
+        // 1. Largest component size   - larger connected regions give more room to explore
+        if (comp_size > best_comp_size)
+            best_comp_size = comp_size;
+        // 2. Largest cut_distance     - starting far from cut vertices avoids backtracking after passing them
+        if (comp_size == best_comp_size && cut_distance > best_distance)
+            best_distance = cut_distance;
+        // 3. Smallest neighbour_count - starting from dead-ends and corners reduce forced backtrack paths
+        if (comp_size == best_comp_size && cut_distance == best_distance && neighbours < best_neighbours) {
             best_neighbours   = neighbours;
             best_comp_size = comp_size;
             best_distance    = cut_distance;
         }
-        // 2. Largest component size   - larger connected regions give more room to explore
-        if (neighbours == best_neighbours && comp_size > best_comp_size) {
-            best_comp_size = comp_size;
-            best_distance    = cut_distance;
-        }
-        // 3. Largest cut_distance     - starting far from cut vertices avoids backtracking after passing them
-        if (neighbours == best_neighbours && comp_size == best_comp_size && cut_distance > best_distance)
-            best_distance = cut_distance;
     }
 
     for (size_t i = 0; i < g->cell_count; ++i) {
@@ -395,6 +386,7 @@ PREPROC_DEF grid_context* grid_preprocess(const grid* g) {
     if (ctx == NULL) return NULL;
 
     grid_cut_vertices(g, ctx);
+    grid_cut_distances(g, ctx);
     grid_components(g, ctx);
     grid_calculate_neighbours(g, ctx);
     grid_good_start(g, ctx);

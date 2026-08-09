@@ -160,6 +160,40 @@ TEST(grid, set_out_of_bounds_col) {
     grid_free(g);
 }
 
+TEST(grid, unset_cell) {
+    // Arrange
+    grid* g = grid_new(3, 3);
+    EXPECT_TRUE(g != NULL);
+    EXPECT_TRUE(grid_set(g, 1, 2));
+    // Act
+    // Assert
+    EXPECT_TRUE(grid_unset(g, 1, 2));
+    EXPECT_CELL_STATE(grid_at(g, 1, 2), CELL_FREE);
+    grid_free(g);
+}
+
+TEST(grid, unset_out_of_bounds_row) {
+    // Arrange
+    grid* g = grid_new(3, 3);
+    EXPECT_TRUE(g != NULL);
+    // Act
+    // Assert
+    EXPECT_FALSE(grid_unset(g, 3, 0));
+    EXPECT_CELL_STATE(grid_at(g, 3, 0), CELL_OUT_OF_BOUNDS);
+    grid_free(g);
+}
+
+TEST(grid, unset_out_of_bounds_col) {
+    // Arrange
+    grid* g = grid_new(3, 3);
+    EXPECT_TRUE(g != NULL);
+    // Act
+    // Assert
+    EXPECT_FALSE(grid_unset(g, 0, 3));
+    EXPECT_CELL_STATE(grid_at(g, 0, 3), CELL_OUT_OF_BOUNDS);
+    grid_free(g);
+}
+
 TEST(grid, get_unset_cell) {
     // Arrange
     grid* g = grid_new(2, 2);
@@ -308,6 +342,9 @@ int main(void) {
     RUN_TEST(grid, set_multiple_cells);
     RUN_TEST(grid, set_out_of_bounds_row);
     RUN_TEST(grid, set_out_of_bounds_col);
+    RUN_TEST(grid, unset_cell);
+    RUN_TEST(grid, unset_out_of_bounds_row);
+    RUN_TEST(grid, unset_out_of_bounds_col);
     RUN_TEST(grid, get_unset_cell);
     RUN_TEST(grid, overwrite_cell);
     RUN_TEST(grid, zero_dimensions);

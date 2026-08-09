@@ -8,8 +8,8 @@
 #define CELL_IMPL
 #include "cell.h"
 
-#define STRING_VIEW_IMPL
-#include "string_view.h"
+#define PARSE_IMPL
+#include "parse.h"
 
 #define GRID_IMPL
 #include "grid.h"

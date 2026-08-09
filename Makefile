@@ -14,9 +14,15 @@ TEST_SRCS := $(wildcard $(TEST_DIR)/*.c)
 TEST_BINS := $(patsubst $(TEST_DIR)/%.c,$(TEST_BUILD_DIR)/%,$(TEST_SRCS))
 TEST_CFLAGS := $(filter-out -O%,$(CFLAGS)) -O0
 
-.PHONY: all clean debug debug_test rebuild test
+GEN_SRCS := $(wildcard generators/*.c)
+GEN_BINS := $(patsubst generators/%.c,$(BUILD_DIR)/generators/%,$(GEN_SRCS))
+
+.PHONY: all clean debug debug_test rebuild test generators
 all: $(TARGET)
 rebuild: clean $(TARGET)
+
+generators: CFLAGS += -DDEBUG
+generators: $(GEN_BINS)
 
 debug: CFLAGS := $(filter-out -O%,$(CFLAGS))
 debug: CFLAGS += -O0 -g3 -DDEBUG
@@ -45,6 +51,10 @@ debug_test: $(TEST_BINS)
 	$(call run_tests,valgrind --leak-check=full)
 
 $(TEST_BUILD_DIR)/%: $(TEST_DIR)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $< -o $@
+
+$(BUILD_DIR)/generators/%: generators/%.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $< -o $@
 

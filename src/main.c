@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <errno.h>
 #include <limits.h>
 #include <stdbool.h>
@@ -12,39 +13,8 @@
 #define PARSING_ERROR ((size_t) - 1)
 #define LINE_BUF_LENGTH 256
 
-static bool parse_int(string_view sv, int32_t* out) {
-    char  buf[64];
-    char* end;
-    long  value;
-
-    sv = sv_trim(sv);
-    if (sv.size >= sizeof(buf)) return false;
-    if (!sv_copy_cstr(buf, sv, sizeof(buf))) return false;
-
-    errno = 0;
-    value = strtol(buf, &end, 10);
-    if (errno == ERANGE) return false;
-    if (*end != '\0') return false;
-    if (value < INT32_MIN || value > INT32_MAX) return false;
-
-    *out = (int32_t) value;
-    return true;
-}
-
-static bool parse_pair(string_view sv, int32_t* a, int32_t* b) {
-    sv = sv_left_trim(sv);
-
-    string_view first = sv_get_word(sv);
-    sv = sv_skip_word(sv);
-    sv = sv_left_trim(sv);
-
-    string_view second = sv_get_word(sv);
-    sv = sv_skip_word(sv);
-    sv = sv_right_trim(sv);
-
-    if (sv.size > 0) return false;
-    return parse_int(first, a) && parse_int(second, b);
-}
+#define PARSE_IMPL
+#include "./lib/parse.h"
 
 // Expected format:
 // ROWS COLS
@@ -56,16 +26,16 @@ static bool parse_pair(string_view sv, int32_t* a, int32_t* b) {
 static grid* parse_grid_stdin() {
     DEBUG_PRINT("[parse_grid_stdin] reading from stdin\n");
     char line[LINE_BUF_LENGTH];
-    int32_t rows, cols;
+    int rows, cols;
 
     if (!fgets(line, sizeof(line), stdin)) {
         DEBUG_PRINT("[parse_grid_stdin] failed to read first line\n");
         return NULL;
     }
-    string_view sv_line = sv_trim(sv_from_cstr(line));
+    line[strcspn(line, "\r\n")] = '\0';
 
-    if (!parse_pair(sv_line, &rows, &cols)) {
-        DEBUG_PRINT("[parse_grid_stdin] could not parse row/col pair from line: '"SV_PRINT_FMT"'\n", SV_PRINT_ARG(sv_line));
+    if (!parse_pair(line, &rows, &cols)) {
+        DEBUG_PRINT("[parse_grid_stdin] could not parse row/col pair from line: '%s'\n", line);
         return NULL;
     }
     if (rows <= 0 || cols <= 0) {
@@ -77,10 +47,11 @@ static grid* parse_grid_stdin() {
     grid* const g = grid_new(rows, cols);
 
     while (fgets(line, sizeof(line), stdin)) {
-        sv_line = sv_trim(sv_from_cstr(line));
-        int32_t cell_row, cell_col;
-        if (!parse_pair(sv_line, &cell_row, &cell_col)) {
-            DEBUG_PRINT("[parse_grid_stdin] could not parse line: '"SV_PRINT_FMT"'\n", SV_PRINT_ARG(sv_line));
+        line[strcspn(line, "\r\n")] = '\0';
+
+        int cell_row, cell_col;
+        if (!parse_pair(line, &cell_row, &cell_col)) {
+            DEBUG_PRINT("[parse_grid_stdin] could not parse line: '%s'\n", line);
             continue;
         }
         if (cell_row < 0 || cell_row >= rows) {
@@ -237,8 +208,8 @@ int main(int argc, char* argv[]) {
     }
 
     const char* algo_name = argv[1];
-    int32_t parsed_steps;
-    if (!parse_int(sv_from_cstr(argv[2]), &parsed_steps) || parsed_steps < 0) {
+    int parsed_steps;
+    if (!parse_int(argv[2], &parsed_steps) || parsed_steps < 0) {
         printf("Invalid MAX_STEPS: %s\n", argv[2]);
         return EXIT_FAILURE;
     }
