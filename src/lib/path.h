@@ -91,7 +91,7 @@ PATH_DEF void path_clear(path* p) {
 #define PATH_PRINT_MAX_ROW 8
 
 PATH_DEF void path_print(const path* p, size_t cols) {
-    printf("Path(%ld) {\n", p->size);
+    printf("Path(%zu) {\n", p->size);
     printf("    ");
     size_t in_row = 0;
     for (size_t i = 0; i < p->size - 1; ++i) {
@@ -101,11 +101,11 @@ PATH_DEF void path_print(const path* p, size_t cols) {
         }
         size_t row = cell_row(p->cells[i], cols);
         size_t col = cell_col(p->cells[i], cols);
-        printf("(%ld, %ld), ", row, col);
+        printf("(%zu, %zu), ", row, col);
         in_row++;
     }
     // Last cell without comma
-    printf("(%ld, %ld)\n}\n", cell_row(p->cells[p->size - 1], cols), cell_col(p->cells[p->size - 1], cols));
+    printf("(%zu, %zu)\n}\n", cell_row(p->cells[p->size - 1], cols), cell_col(p->cells[p->size - 1], cols));
 }
 
 PATH_DEF void path_print_on_grid(const path* p, const grid* g) {
@@ -136,7 +136,8 @@ PATH_DEF void path_print_on_grid(const path* p, const grid* g) {
         if (start_idx < g->cell_count && p->size > 1) {
             direction d = direction_between(p->cells[0], p->cells[1], g->cols);
             buf[start_idx] = d == DIRECTION_INVALID ? 'S' : direction_arrow(d);
-        } else if (start_idx < g->cell_count) {
+        }
+        else if (start_idx < g->cell_count) {
             buf[start_idx] = 'S';
         }
 
@@ -144,7 +145,7 @@ PATH_DEF void path_print_on_grid(const path* p, const grid* g) {
             buf[end_idx] = 'E';
     }
 
-    printf("Grid(%ld, %ld) with path of size %ld\n", g->rows, g->cols, p->size);
+    printf("Grid(%zu, %zu) with path of size %zu\n", g->rows, g->cols, p->size);
     for (size_t row = 0; row < g->rows; ++row) {
         for (size_t col = 0; col < g->cols; ++col) {
             size_t const idx = row * g->cols + col;

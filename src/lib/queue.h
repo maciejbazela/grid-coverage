@@ -30,6 +30,7 @@ QUEUE_DEF void   queue_clear(queue* q);
 
 QUEUE_DEF queue* queue_new(size_t capacity) {
     if (capacity == 0) return NULL;
+    if (capacity > (SIZE_MAX - sizeof(queue)) / sizeof(size_t)) return NULL;
 
     queue* q = malloc(sizeof(queue) + capacity * sizeof(size_t));
     if (!q) return NULL;

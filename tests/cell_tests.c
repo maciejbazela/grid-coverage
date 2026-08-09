@@ -42,8 +42,8 @@ TEST(cell, row_of_col_of_all_cells) {
     // Arrange
     // Act
     // Assert
-    for (size_t r = 0; r < 5; r++)
-        for (size_t c = 0; c < 7; c++) {
+    for (size_t r = 0; r < 5; ++r)
+        for (size_t c = 0; c < 7; ++c) {
             cell cl = cell_from_row_col(r, c, 7);
             EXPECT_EQ(cell_row(cl, 7), r);
             EXPECT_EQ(cell_col(cl, 7), c);

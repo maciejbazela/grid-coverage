@@ -61,6 +61,7 @@ PREPROC_DEF grid_context* grid_preprocess(const grid* g);
 
 PREPROC_DEF grid_context* grid_context_new(size_t cell_count, size_t cols) {
     if (cell_count == 0 || cols == 0) return NULL;
+    if (cell_count > (SIZE_MAX - sizeof(grid_context)) / sizeof(cell_info)) return NULL;
 
     grid_context* ctx = calloc(1, sizeof(grid_context) + cell_count * sizeof(cell_info));
     if (ctx == NULL) return NULL;
@@ -339,7 +340,6 @@ PREPROC_DEF void grid_calculate_neighbours(const grid* g, grid_context* ctx) {
     }
 }
 
-// TODO: maybe I shouldn't discard all the other cells, maybe I should sort them by these criteria and pick best
 PREPROC_DEF void grid_good_start(const grid* g, grid_context* ctx) {
     uint8_t  best_neighbours = UINT8_MAX;
     size_t   best_comp_size   = 0;
@@ -356,11 +356,13 @@ PREPROC_DEF void grid_good_start(const grid* g, grid_context* ctx) {
             best_comp_size = comp_size;
             best_distance  = cut_distance;
             best_neighbours = neighbours;
-        } else if (comp_size == best_comp_size) {
+        }
+        else if (comp_size == best_comp_size) {
             if (cut_distance > best_distance) {
                 best_distance  = cut_distance;
                 best_neighbours = neighbours;
-            } else if (cut_distance == best_distance && neighbours < best_neighbours) {
+            }
+            else if (cut_distance == best_distance && neighbours < best_neighbours) {
                 best_neighbours = neighbours;
             }
         }

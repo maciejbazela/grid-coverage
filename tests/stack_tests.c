@@ -21,6 +21,14 @@ TEST(stack, new_zero) {
     EXPECT_TRUE(s == NULL);
 }
 
+TEST(stack, new_overflow) {
+    // Arrange
+    // Act
+    stack* s = stack_new(SIZE_MAX);
+    // Assert
+    EXPECT_TRUE(s == NULL);
+}
+
 TEST(stack, free_null) {
     // Arrange
     // Act
@@ -138,11 +146,11 @@ TEST(stack, large) {
     size_t const n = 1000;
     stack* s = stack_new(n);
     // Act
-    for (size_t i = 0; i < n; i++)
+    for (size_t i = 0; i < n; ++i)
         EXPECT_TRUE(stack_push(s, i));
     // Assert
     EXPECT_SIZE_EQ(s->size, n);
-    for (size_t i = 0; i < n; i++)
+    for (size_t i = 0; i < n; ++i)
         EXPECT_SIZE_EQ(stack_pop(s), n - 1 - i);
     EXPECT_SIZE_EQ(s->size, 0);
     stack_free(s);
@@ -151,6 +159,7 @@ TEST(stack, large) {
 int main(void) {
     RUN_TEST(stack, new_small);
     RUN_TEST(stack, new_zero);
+    RUN_TEST(stack, new_overflow);
     RUN_TEST(stack, push_works);
     RUN_TEST(stack, push_order);
     RUN_TEST(stack, pop_works);

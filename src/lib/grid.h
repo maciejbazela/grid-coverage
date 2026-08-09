@@ -35,7 +35,9 @@ GRID_DEF void       grid_print(const grid* g);
 #ifdef GRID_IMPL
 
 GRID_DEF grid* grid_new(size_t rows, size_t cols) {
-    if (rows <= 0 || cols <= 0) return NULL;
+    if (rows == 0 || cols == 0) return NULL;
+    if (rows > SIZE_MAX / cols) return NULL;
+    if (rows * cols > (SIZE_MAX - sizeof(grid)) / sizeof(bool)) return NULL;
 
     grid* const g = calloc(1, sizeof(grid) + sizeof(bool) * rows * cols);
     if (g == NULL) return NULL;
@@ -92,9 +94,9 @@ GRID_DEF cell_state grid_at_flat(const grid* g, size_t idx) {
 }
 
 GRID_DEF void grid_print(const grid* g) {
-    printf("Grid(%ld, %ld)\n", g->rows, g->cols);
+    printf("Grid(%zu, %zu)\n", g->rows, g->cols);
     for (size_t row = 0; row < g->rows; ++row) {
-        for(size_t col = 0; col < g->cols; ++col) {
+        for (size_t col = 0; col < g->cols; ++col) {
             size_t stride = row * g->cols + col;
             if (g->cells[stride]) printf("#");
             else printf(".");

@@ -23,6 +23,14 @@ TEST(queue, new_zero) {
     EXPECT_TRUE(q == NULL);
 }
 
+TEST(queue, new_overflow) {
+    // Arrange
+    // Act
+    queue* q = queue_new(SIZE_MAX);
+    // Assert
+    EXPECT_TRUE(q == NULL);
+}
+
 TEST(queue, free_null) {
     // Arrange
     // Act
@@ -164,11 +172,11 @@ TEST(queue, large) {
     size_t const n = 1000;
     queue* q = queue_new(n);
     // Act
-    for (size_t i = 0; i < n; i++)
+    for (size_t i = 0; i < n; ++i)
         EXPECT_TRUE(queue_push(q, i));
     // Assert
     EXPECT_SIZE_EQ(q->size, n);
-    for (size_t i = 0; i < n; i++)
+    for (size_t i = 0; i < n; ++i)
         EXPECT_SIZE_EQ(queue_pop(q), i);
     EXPECT_SIZE_EQ(q->size, 0);
     queue_free(q);
@@ -177,6 +185,7 @@ TEST(queue, large) {
 int main(void) {
     RUN_TEST(queue, new_small);
     RUN_TEST(queue, new_zero);
+    RUN_TEST(queue, new_overflow);
     RUN_TEST(queue, free_null);
     RUN_TEST(queue, push_works);
     RUN_TEST(queue, push_order);

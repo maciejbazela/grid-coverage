@@ -302,7 +302,7 @@ Total memory: ~48 bytes per cell. The context and its cell array live in one FAM
 Four walk algorithms are implemented. All accept a start cell and return a `path*`. The caller frees the path.
 
 | Algorithm | Time | Memory | Deterministic |
-|---|---|---|---|---|
+|---|---|---|---|
 | Deep walk | O(max_steps) | O(N + max_steps) | Yes |
 | Random walk | O(max_steps) | O(N + max_steps) | No (seeded) |
 | Warnsdorff walk | O(max_steps) | O(N + max_steps) | Yes |
@@ -351,6 +351,6 @@ Walk algorithms need no locks. Each inner-algorithm call reads the grid and cont
 ### Additional preprocessing
 
 - Build a component graph over cut vertices. This lets the walker analyze component connectivity globally rather than locally.
-- Compute articulation-point weight - how many cells become unreachable if a given cell is visited last among its neighbours. This gives a better cut-vertex penalty than the binary flag.
+- Compute cut-vertex weight - how many cells become unreachable if a given cell is visited last among its neighbours. This gives a better cut-vertex penalty than the binary flag.
 - Compute all-pairs distances within each component with a second BFS pass. This supports lookahead heuristics that consider reachable frontier size.
 

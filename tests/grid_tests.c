@@ -27,8 +27,8 @@ TEST(grid, new_empty_cells) {
     grid* g = grid_new(3, 3);
     // Assert
     EXPECT_TRUE(g != NULL);
-    for (size_t r = 0; r < 3; r++)
-        for (size_t c = 0; c < 3; c++)
+    for (size_t r = 0; r < 3; ++r)
+        for (size_t c = 0; c < 3; ++c)
             EXPECT_CELL_STATE(grid_at(g, r, c), CELL_FREE);
     grid_free(g);
 }
@@ -42,8 +42,8 @@ TEST(grid, new_with_blocked_no_cells) {
     EXPECT_SIZE_EQ(g->rows, 3);
     EXPECT_SIZE_EQ(g->cols, 3);
     EXPECT_SIZE_EQ(g->cell_count, 9);
-    for (size_t r = 0; r < 3; r++)
-        for (size_t c = 0; c < 3; c++)
+    for (size_t r = 0; r < 3; ++r)
+        for (size_t c = 0; c < 3; ++c)
             EXPECT_CELL_STATE(grid_at(g, r, c), CELL_FREE);
     grid_free(g);
 }
@@ -226,6 +226,14 @@ TEST(grid, zero_dimensions) {
     EXPECT_TRUE(g == NULL);
 }
 
+TEST(grid, new_overflow) {
+    // Arrange
+    // Act
+    grid* g = grid_new(SIZE_MAX, 1);
+    // Assert
+    EXPECT_TRUE(g == NULL);
+}
+
 TEST(grid, large_grid) {
     // Arrange
     // Act
@@ -295,8 +303,8 @@ TEST(grid, flat_matches) {
     EXPECT_TRUE(grid_set(g, 1, 1));
     // Act
     // Assert
-    for (size_t r = 0; r < 2; r++)
-        for (size_t c = 0; c < 3; c++)
+    for (size_t r = 0; r < 2; ++r)
+        for (size_t c = 0; c < 3; ++c)
             EXPECT_CELL_STATE(grid_at_flat(g, r * 3 + c), grid_at(g, r, c));
     grid_free(g);
 }
@@ -348,6 +356,7 @@ int main(void) {
     RUN_TEST(grid, get_unset_cell);
     RUN_TEST(grid, overwrite_cell);
     RUN_TEST(grid, zero_dimensions);
+    RUN_TEST(grid, new_overflow);
     RUN_TEST(grid, large_grid);
     RUN_TEST(grid, non_square_stride);
     RUN_TEST(grid, non_square_stride_corner);

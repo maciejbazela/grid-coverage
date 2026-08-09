@@ -212,7 +212,7 @@ TEST(path, large) {
     size_t const n = 1000;
     path* p = path_new(n);
     // Act
-    for (size_t i = 0; i < n; i++) {
+    for (size_t i = 0; i < n; ++i) {
         cell c = cell_from_row_col(i, i, n);
         EXPECT_TRUE(path_push(p, c));
     }
@@ -220,7 +220,7 @@ TEST(path, large) {
     EXPECT_EQ(p->size, n);
     cell last = cell_from_row_col(n - 1, n - 1, n);
     EXPECT_TRUE(cell_eq(path_at(p, n - 1), last));
-    for (size_t i = 0; i < n; i++) {
+    for (size_t i = 0; i < n; ++i) {
         cell c = cell_from_row_col(n - 1 - i, n - 1 - i, n);
         EXPECT_TRUE(cell_eq(path_pop(p), c));
     }

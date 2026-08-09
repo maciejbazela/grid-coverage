@@ -41,6 +41,14 @@ TEST(grid_context, new_zero_dimensions) {
     EXPECT_TRUE(b == NULL);
 }
 
+TEST(grid_context, new_overflow) {
+    // Arrange
+    // Act
+    grid_context* ctx = grid_context_new(SIZE_MAX, 4);
+    // Assert
+    EXPECT_TRUE(ctx == NULL);
+}
+
 TEST(grid_context, free_null) {
     // Arrange
     // Act
@@ -945,6 +953,7 @@ TEST(grid_preprocess, null_grid) {
 int main(void) {
     RUN_TEST(grid_context, new_small);
     RUN_TEST(grid_context, new_zero_dimensions);
+    RUN_TEST(grid_context, new_overflow);
     RUN_TEST(grid_context, free_null);
     RUN_TEST(grid_context, cells_zeroed_after_new);
     RUN_TEST(grid_context, alloc_component_sizes_null_context);
