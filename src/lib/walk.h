@@ -154,11 +154,11 @@ WALK_DEF path* walk_solve_warnsdorff(const grid* g, size_t max_steps, cell start
                 comp_size = ctx->component_sizes[comp_id];
 
             bool better = false;
-            if (comp_size > best_comp_size)
+            if (unvisited_neighbours < best_unvisited_neighbours)
                 better = true;
-            else if (comp_size == best_comp_size && cut_dist > best_cut_distance)
+            else if (unvisited_neighbours == best_unvisited_neighbours && comp_size > best_comp_size)
                 better = true;
-            else if (comp_size == best_comp_size && cut_dist == best_cut_distance && unvisited_neighbours < best_unvisited_neighbours)
+            else if (unvisited_neighbours == best_unvisited_neighbours && comp_size == best_comp_size && cut_dist > best_cut_distance)
                 better = true;
 
             if (better) {
