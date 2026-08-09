@@ -354,6 +354,3 @@ Walk algorithms need no locks. Each inner-algorithm call reads the grid and cont
 - Compute articulation-point weight - how many cells become unreachable if a given cell is visited last among its neighbours. This gives a better cut-vertex penalty than the binary flag.
 - Compute all-pairs distances within each component with a second BFS pass. This supports lookahead heuristics that consider reachable frontier size.
 
-### `path_unique_cells`
-
-`path_unique_cells` counts distinct cells in O(N^2) time. Each walk algorithm already maintains a `visited` array with O(1) lookups. Return the unique count from the algorithm directly instead of scanning the path afterwards.

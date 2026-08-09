@@ -315,72 +315,6 @@ TEST(path, print_on_grid_smoke_test_with_backtrack) {
     path_free(p);
 }
 
-TEST(path, unique_cells_empty) {
-    // Arrange
-    path* p = path_new(4);
-    // Act
-    size_t unique = path_unique_cells(p);
-    // Assert
-    EXPECT_SIZE_EQ(unique, 0);
-    path_free(p);
-}
-
-TEST(path, unique_cells_single) {
-    // Arrange
-    path* p = path_new(4);
-    cell c0 = cell_from_row_col(0, 0, 4);
-    path_push(p, c0);
-    // Act
-    size_t unique = path_unique_cells(p);
-    // Assert
-    EXPECT_SIZE_EQ(unique, 1);
-    path_free(p);
-}
-
-TEST(path, unique_cells_all_distinct) {
-    // Arrange
-    path* p = path_new(4);
-    path_push(p, cell_from_row_col(0, 0, 4));
-    path_push(p, cell_from_row_col(0, 1, 4));
-    path_push(p, cell_from_row_col(0, 2, 4));
-    // Act
-    size_t unique = path_unique_cells(p);
-    // Assert
-    EXPECT_SIZE_EQ(unique, 3);
-    EXPECT_SIZE_EQ(p->size, 3);
-    path_free(p);
-}
-
-TEST(path, unique_cells_with_backtrack) {
-    // Arrange
-    path* p = path_new(8);
-    path_push(p, cell_from_row_col(0, 0, 4));
-    path_push(p, cell_from_row_col(0, 1, 4));
-    path_push(p, cell_from_row_col(0, 2, 4));
-    path_push(p, cell_from_row_col(0, 1, 4));
-    path_push(p, cell_from_row_col(0, 0, 4));
-    // Act
-    size_t unique = path_unique_cells(p);
-    // Assert
-    EXPECT_SIZE_EQ(unique, 3);
-    EXPECT_SIZE_EQ(p->size, 5);
-    path_free(p);
-}
-
-TEST(path, unique_cells_same_cell_repeated) {
-    // Arrange
-    path* p = path_new(8);
-    path_push(p, cell_from_row_col(0, 0, 4));
-    path_push(p, cell_from_row_col(0, 0, 4));
-    path_push(p, cell_from_row_col(0, 0, 4));
-    // Act
-    size_t unique = path_unique_cells(p);
-    // Assert
-    EXPECT_SIZE_EQ(unique, 1);
-    EXPECT_SIZE_EQ(p->size, 3);
-    path_free(p);
-}
-
 TEST(path, push_idx_works) {
     // Arrange
     path* p = path_new(3);
@@ -437,11 +371,6 @@ int main(void) {
     RUN_TEST(path, copy_into);
     RUN_TEST(path, copy_small_dst);
     RUN_TEST(path, large);
-    RUN_TEST(path, unique_cells_empty);
-    RUN_TEST(path, unique_cells_single);
-    RUN_TEST(path, unique_cells_all_distinct);
-    RUN_TEST(path, unique_cells_with_backtrack);
-    RUN_TEST(path, unique_cells_same_cell_repeated);
     RUN_TEST(path, push_idx_works);
     RUN_TEST(path, push_idx_full);
     RUN_TEST(path, push_idx_and_push_consistent);

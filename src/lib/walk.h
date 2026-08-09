@@ -8,15 +8,22 @@
 #define WALK_DEF static inline
 #endif
 
-typedef path* (*traverse_fn)(const grid*, size_t max_steps, cell start, const grid_context*);
+typedef struct {
+    size_t unique_cells;
+    path*  p;
+} walk_result;
 
-WALK_DEF cell  walk_pick_first_good_start(const grid* g, const grid_context* ctx);
-WALK_DEF path* walk_solve_deep(const grid* g, size_t max_steps, cell start, const grid_context* ctx);
-WALK_DEF path* walk_solve_random(const grid* g, size_t max_steps, cell start, const grid_context* ctx, unsigned seed);
-WALK_DEF path* walk_solve_warnsdorff(const grid* g, size_t max_steps, cell start, const grid_context* ctx);
-WALK_DEF path* walk_solve_heuristic(const grid* g, size_t max_steps, cell start, const grid_context* ctx);
-WALK_DEF path* walk_solve_multistart(const grid* g, size_t max_steps, traverse_fn inner, const grid_context* ctx);
-WALK_DEF path* walk_solve_all_free(const grid* g, size_t max_steps, traverse_fn inner, const grid_context* ctx);
+#define WALK_RESULT_NULL ((walk_result){ .unique_cells = 0, .p = NULL })
+
+typedef walk_result (*traverse_fn)(const grid*, size_t max_steps, cell start, const grid_context*);
+
+WALK_DEF cell        walk_pick_first_good_start(const grid* g, const grid_context* ctx);
+WALK_DEF walk_result walk_solve_deep(const grid* g, size_t max_steps, cell start, const grid_context* ctx);
+WALK_DEF walk_result walk_solve_random(const grid* g, size_t max_steps, cell start, const grid_context* ctx, unsigned seed);
+WALK_DEF walk_result walk_solve_warnsdorff(const grid* g, size_t max_steps, cell start, const grid_context* ctx);
+WALK_DEF walk_result walk_solve_heuristic(const grid* g, size_t max_steps, cell start, const grid_context* ctx);
+WALK_DEF walk_result walk_solve_multistart(const grid* g, size_t max_steps, traverse_fn inner, const grid_context* ctx);
+WALK_DEF walk_result walk_solve_all_free(const grid* g, size_t max_steps, traverse_fn inner, const grid_context* ctx);
 
 #ifdef WALK_IMPL
 
@@ -30,7 +37,7 @@ WALK_DEF cell walk_pick_first_good_start(const grid* g, const grid_context* ctx)
     return CELL_NONE;
 }
 
-WALK_DEF path* walk_solve_deep(const grid* g, size_t max_steps, cell start, const grid_context* ctx) {
+WALK_DEF walk_result walk_solve_deep(const grid* g, size_t max_steps, cell start, const grid_context* ctx) {
     (void) ctx;
 
     bool* visited = calloc(g->cell_count, sizeof(bool));
@@ -40,6 +47,7 @@ WALK_DEF path* walk_solve_deep(const grid* g, size_t max_steps, cell start, cons
     path_push(p, start);
     stack_push(frontier, start.idx);
     visited[start.idx] = true;
+    size_t unique_cells = 1;
 
     while (p->size <= max_steps) {
         cell v = path_top(p);
@@ -49,6 +57,7 @@ WALK_DEF path* walk_solve_deep(const grid* g, size_t max_steps, cell start, cons
             if (!cell_eq(w, CELL_NONE) && grid_at_flat(g, w.idx) == CELL_FREE && !visited[w.idx]) {
                 path_push(p, w);
                 visited[w.idx] = true;
+                ++unique_cells;
                 stack_push(frontier, w.idx);
                 moved = true;
                 break;
@@ -64,10 +73,10 @@ WALK_DEF path* walk_solve_deep(const grid* g, size_t max_steps, cell start, cons
 
     free(visited);
     stack_free(frontier);
-    return p;
+    return (walk_result){ .unique_cells = unique_cells, .p = p };
 }
 
-WALK_DEF path* walk_solve_random(const grid* g, size_t max_steps, cell start, const grid_context* ctx, unsigned seed) {
+WALK_DEF walk_result walk_solve_random(const grid* g, size_t max_steps, cell start, const grid_context* ctx, unsigned seed) {
     (void) ctx;
 
     srand(seed);
@@ -79,6 +88,7 @@ WALK_DEF path* walk_solve_random(const grid* g, size_t max_steps, cell start, co
 
     path_push(p, start);
     visited[start.idx] = true;
+    size_t unique_cells = 1;
 
     size_t rng_i = 0;
     for (size_t step = 0; step < max_steps; ++step) {
@@ -99,6 +109,7 @@ WALK_DEF path* walk_solve_random(const grid* g, size_t max_steps, cell start, co
         if (unv_count > 0) {
             chosen = unvisited[rng[rng_i++] % unv_count];
             visited[chosen] = true;
+            ++unique_cells;
         }
         else if (v_count > 0) {
             chosen = visited_neighbours[rng[rng_i++] % v_count];
@@ -111,7 +122,7 @@ WALK_DEF path* walk_solve_random(const grid* g, size_t max_steps, cell start, co
 
     free(rng);
     free(visited);
-    return p;
+    return (walk_result){ .unique_cells = unique_cells, .p = p };
 }
 
 static size_t walk_count_unvisited_neighbours(const grid_context* ctx, const bool* visited, size_t cell_idx) {
@@ -123,7 +134,7 @@ static size_t walk_count_unvisited_neighbours(const grid_context* ctx, const boo
     return count;
 }
 
-WALK_DEF path* walk_solve_warnsdorff(const grid* g, size_t max_steps, cell start, const grid_context* ctx) {
+WALK_DEF walk_result walk_solve_warnsdorff(const grid* g, size_t max_steps, cell start, const grid_context* ctx) {
     bool* visited = calloc(g->cell_count, sizeof(bool));
     path* p = path_new(max_steps + 1);
     stack* frontier = stack_new(max_steps + 1);
@@ -131,6 +142,7 @@ WALK_DEF path* walk_solve_warnsdorff(const grid* g, size_t max_steps, cell start
     path_push(p, start);
     stack_push(frontier, start.idx);
     visited[start.idx] = true;
+    size_t unique_cells = 1;
 
     while (p->size <= max_steps) {
         cell v = path_top(p);
@@ -172,6 +184,7 @@ WALK_DEF path* walk_solve_warnsdorff(const grid* g, size_t max_steps, cell start
         if (!cell_eq(best_cell, CELL_NONE)) {
             path_push(p, best_cell);
             visited[best_cell.idx] = true;
+            ++unique_cells;
             stack_push(frontier, best_cell.idx);
         }
         else {
@@ -185,10 +198,10 @@ WALK_DEF path* walk_solve_warnsdorff(const grid* g, size_t max_steps, cell start
 
     free(visited);
     stack_free(frontier);
-    return p;
+    return (walk_result){ .unique_cells = unique_cells, .p = p };
 }
 
-WALK_DEF path* walk_solve_heuristic(const grid* g, size_t max_steps, cell start, const grid_context* ctx) {
+WALK_DEF walk_result walk_solve_heuristic(const grid* g, size_t max_steps, cell start, const grid_context* ctx) {
     bool* visited = calloc(g->cell_count, sizeof(bool));
     path* p = path_new(max_steps + 1);
     stack* frontier = stack_new(max_steps + 1);
@@ -196,6 +209,7 @@ WALK_DEF path* walk_solve_heuristic(const grid* g, size_t max_steps, cell start,
     path_push(p, start);
     stack_push(frontier, start.idx);
     visited[start.idx] = true;
+    size_t unique_cells = 1;
 
     while (p->size <= max_steps) {
         cell v = path_top(p);
@@ -231,6 +245,7 @@ WALK_DEF path* walk_solve_heuristic(const grid* g, size_t max_steps, cell start,
         if (!cell_eq(best_cell, CELL_NONE)) {
             path_push(p, best_cell);
             visited[best_cell.idx] = true;
+            ++unique_cells;
             stack_push(frontier, best_cell.idx);
         }
         else {
@@ -244,12 +259,11 @@ WALK_DEF path* walk_solve_heuristic(const grid* g, size_t max_steps, cell start,
 
     free(visited);
     stack_free(frontier);
-    return p;
+    return (walk_result){ .unique_cells = unique_cells, .p = p };
 }
 
-WALK_DEF path* walk_solve_multistart(const grid* g, size_t max_steps, traverse_fn inner, const grid_context* ctx) {
-    path* best_path = NULL;
-    size_t best_unique = 0;
+WALK_DEF walk_result walk_solve_multistart(const grid* g, size_t max_steps, traverse_fn inner, const grid_context* ctx) {
+    walk_result best = WALK_RESULT_NULL;
 
     DEBUG_SCOPE {
         size_t good_starts = 0;
@@ -263,32 +277,29 @@ WALK_DEF path* walk_solve_multistart(const grid* g, size_t max_steps, traverse_f
 
         DEBUG_PRINT("[multistart] trying start (%zu, %zu)\n", i / g->cols, i % g->cols);
 
-        path* candidate = inner(g, max_steps, (cell){ .idx = i }, ctx);
-        if (candidate == NULL) continue;
+        walk_result candidate = inner(g, max_steps, (cell){ .idx = i }, ctx);
+        if (candidate.p == NULL) continue;
 
-        size_t u = path_unique_cells(candidate);
-        DEBUG_PRINT("[multistart]   unique=%zu\n", u);
-        if (u > best_unique) {
-            DEBUG_PRINT("[multistart]   new best! %zu -> %zu\n", best_unique, u);
-            if (best_path != NULL) path_free(best_path);
-            best_path = candidate;
-            best_unique = u;
-            if (u == max_steps + 1) // Theoretical optimuum
-                return best_path;
+        DEBUG_PRINT("[multistart]   unique=%zu\n", candidate.unique_cells);
+        if (candidate.unique_cells > best.unique_cells) {
+            DEBUG_PRINT("[multistart]   new best! %zu -> %zu\n", best.unique_cells, candidate.unique_cells);
+            if (best.p != NULL) path_free(best.p);
+            best = candidate;
+            if (candidate.unique_cells == max_steps + 1) // Theoretical optimuum
+                return best;
         }
         else
-            path_free(candidate);
+            path_free(candidate.p);
     }
 
-    DEBUG_PRINT("[multistart] done, best=%zu\n", best_unique);
-    return best_path;
+    DEBUG_PRINT("[multistart] done, best=%zu\n", best.unique_cells);
+    return best;
 }
 
-WALK_DEF path* walk_solve_all_free(const grid* g, size_t max_steps, traverse_fn inner, const grid_context* ctx) {
+WALK_DEF walk_result walk_solve_all_free(const grid* g, size_t max_steps, traverse_fn inner, const grid_context* ctx) {
     (void) ctx;
 
-    path* best_path = NULL;
-    size_t best_unique = 0;
+    walk_result best = WALK_RESULT_NULL;
 
     DEBUG_SCOPE {
         size_t free_cells = 0;
@@ -302,25 +313,23 @@ WALK_DEF path* walk_solve_all_free(const grid* g, size_t max_steps, traverse_fn 
 
         DEBUG_PRINT("[all_free] trying start (%zu, %zu)\n", i / g->cols, i % g->cols);
 
-        path* candidate = inner(g, max_steps, (cell){ .idx = i }, ctx);
-        if (candidate == NULL) continue;
+        walk_result candidate = inner(g, max_steps, (cell){ .idx = i }, ctx);
+        if (candidate.p == NULL) continue;
 
-        size_t u = path_unique_cells(candidate);
-        DEBUG_PRINT("[all_free]   unique=%zu\n", u);
-        if (u > best_unique) {
-            DEBUG_PRINT("[all_free]   new best! %zu -> %zu\n", best_unique, u);
-            if (best_path != NULL) path_free(best_path);
-            best_path = candidate;
-            best_unique = u;
-            if (u == max_steps + 1) // Theoretical optimum
-                return best_path;
+        DEBUG_PRINT("[all_free]   unique=%zu\n", candidate.unique_cells);
+        if (candidate.unique_cells > best.unique_cells) {
+            DEBUG_PRINT("[all_free]   new best! %zu -> %zu\n", best.unique_cells, candidate.unique_cells);
+            if (best.p != NULL) path_free(best.p);
+            best = candidate;
+            if (candidate.unique_cells == max_steps + 1) // Theoretical optimum
+                return best;
         }
         else
-            path_free(candidate);
+            path_free(candidate.p);
     }
 
-    DEBUG_PRINT("[all_free] done, best=%zu\n", best_unique);
-    return best_path;
+    DEBUG_PRINT("[all_free] done, best=%zu\n", best.unique_cells);
+    return best;
 }
 
 #endif

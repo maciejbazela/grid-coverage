@@ -196,7 +196,7 @@ fail:
     return NULL;
 }
 
-static path* random_wrapper(const grid* g, size_t max_steps, cell start, const grid_context* ctx) {
+static walk_result random_wrapper(const grid* g, size_t max_steps, cell start, const grid_context* ctx) {
     return walk_solve_random(g, max_steps, start, ctx, (unsigned) time(NULL));
 }
 
@@ -227,7 +227,7 @@ int main(int argc, char* argv[]) {
 
     grid* g = NULL;
     grid_context* ctx = NULL;
-    path* p = NULL;
+    walk_result result = WALK_RESULT_NULL;
 
     if (argc >= 4)
         g = parse_grid_file(argv[3]);
@@ -264,35 +264,35 @@ int main(int argc, char* argv[]) {
         goto fail;
     }
     DEBUG_PRINT("Running %s from all good starts\n", algo_name);
-    p = walk_solve_multistart(g, max_steps - 1, inner, ctx);
-    if (p == NULL) {
+    result = walk_solve_multistart(g, max_steps - 1, inner, ctx);
+    if (result.p == NULL) {
         DEBUG_PRINT("No path from good starts, falling back to all free cells\n");
-        p = walk_solve_all_free(g, max_steps - 1, inner, ctx);
+        result = walk_solve_all_free(g, max_steps - 1, inner, ctx);
     }
-    if (p == NULL) {
+    if (result.p == NULL) {
         printf("No path found\n");
         goto fail;
     }
 
     DEBUG_PRINT("Best result for algorithm: 'walk_solve_%s':\n", algo_name);
-    for (size_t i = 0; i < p->size; ++i) {
-        cell c = path_at(p, i);
+    for (size_t i = 0; i < result.p->size; ++i) {
+        cell c = path_at(result.p, i);
         printf("(%zu, %zu)", cell_row(c, g->cols), cell_col(c, g->cols));
-        if (i + 1 < p->size) printf(", ");
+        if (i + 1 < result.p->size) printf(", ");
     }
-    printf(", %zu\n", path_unique_cells(p));
+    printf(", %zu\n", result.unique_cells);
 
 #ifdef DEBUG
-    if (g->cols <= 200 && g->rows <= 400) path_print_on_grid(p, g);
+    if (g->cols <= 200 && g->rows <= 400) path_print_on_grid(result.p, g);
 #endif
 
-    path_free(p);
+    path_free(result.p);
     grid_context_free(ctx);
     grid_free(g);
     return EXIT_SUCCESS;
 
 fail:
-    if (p) path_free(p);
+    if (result.p) path_free(result.p);
     if (ctx) grid_context_free(ctx);
     if (g) grid_free(g);
     return EXIT_FAILURE;
