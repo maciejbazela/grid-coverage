@@ -113,7 +113,7 @@ WALK_DEF path* walk_solve_random(const grid* g, size_t max_steps, cell start, co
     return p;
 }
 
-WALK_DEF size_t walk_count_unvisited_neighbours(const grid_context* ctx, bool* visited, size_t cell_idx) {
+static size_t walk_count_unvisited_neighbours(const grid_context* ctx, const bool* visited, size_t cell_idx) {
     size_t count = 0;
     if (ctx->cells[cell_idx].neighbour_north != NO_NEIGHBOUR && !visited[ctx->cells[cell_idx].neighbour_north]) ++count;
     if (ctx->cells[cell_idx].neighbour_south != NO_NEIGHBOUR && !visited[ctx->cells[cell_idx].neighbour_south]) ++count;

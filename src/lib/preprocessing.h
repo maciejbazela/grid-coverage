@@ -203,7 +203,7 @@ PREPROC_DEF void grid_cut_vertices(const grid* g, grid_context* ctx) {
     stack_free(s);
     free(state);
 }
-PREPROC_DEF size_t grid_components_discover(const grid* g, grid_context* ctx, size_t comp_id) {
+static size_t grid_components_discover(const grid* g, grid_context* ctx, size_t comp_id) {
     stack* s = stack_new(g->cell_count);
     for (size_t u = 0; u < g->cell_count; ++u) {
         if (grid_at_flat(g, u) != CELL_FREE) continue;
@@ -236,7 +236,7 @@ PREPROC_DEF size_t grid_components_discover(const grid* g, grid_context* ctx, si
     return comp_id;
 }
 
-PREPROC_DEF void grid_components_cut_distance(const grid* g, grid_context* ctx) {
+static void grid_components_cut_distance(const grid* g, grid_context* ctx) {
     queue* q = queue_new(g->cell_count);
     // Multi-source BFS, start from all cut vertices
     for (size_t u = 0; u < g->cell_count; ++u) {

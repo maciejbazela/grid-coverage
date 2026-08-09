@@ -1,3 +1,6 @@
+#define CELL_IMPL
+#include "../src/lib/cell.h"
+
 #define GRID_IMPL
 #include "../src/lib/grid.h"
 

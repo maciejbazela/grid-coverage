@@ -1,3 +1,6 @@
+#define CELL_IMPL
+#include "../src/lib/cell.h"
+
 #define GRID_IMPL
 #include "../src/lib/grid.h"
 #include "common.h"
@@ -28,6 +31,76 @@ TEST(grid, new_empty_cells) {
         for (size_t c = 0; c < 3; c++)
             EXPECT_CELL_STATE(grid_at(g, r, c), CELL_FREE);
     grid_free(g);
+}
+
+TEST(grid, new_with_blocked_no_cells) {
+    // Arrange
+    // Act
+    grid* g = grid_new_with_blocked(3, 3, NULL, 0);
+    // Assert
+    EXPECT_TRUE(g != NULL);
+    EXPECT_SIZE_EQ(g->rows, 3);
+    EXPECT_SIZE_EQ(g->cols, 3);
+    EXPECT_SIZE_EQ(g->cell_count, 9);
+    for (size_t r = 0; r < 3; r++)
+        for (size_t c = 0; c < 3; c++)
+            EXPECT_CELL_STATE(grid_at(g, r, c), CELL_FREE);
+    grid_free(g);
+}
+
+TEST(grid, new_with_blocked_single) {
+    // Arrange
+    cell blocked[] = { cell_from_row_col(1, 2, 3) };
+    // Act
+    grid* g = grid_new_with_blocked(3, 3, blocked, 1);
+    // Assert
+    EXPECT_TRUE(g != NULL);
+    EXPECT_CELL_STATE(grid_at(g, 1, 2), CELL_BLOCKED);
+    EXPECT_CELL_STATE(grid_at(g, 0, 0), CELL_FREE);
+    EXPECT_CELL_STATE(grid_at(g, 2, 2), CELL_FREE);
+    grid_free(g);
+}
+
+TEST(grid, new_with_blocked_multiple) {
+    // Arrange
+    cell blocked[] = {
+        cell_from_row_col(0, 0, 3),
+        cell_from_row_col(0, 2, 3),
+        cell_from_row_col(2, 0, 3),
+        cell_from_row_col(2, 2, 3),
+    };
+    // Act
+    grid* g = grid_new_with_blocked(3, 3, blocked, 4);
+    // Assert
+    EXPECT_TRUE(g != NULL);
+    EXPECT_CELL_STATE(grid_at(g, 0, 0), CELL_BLOCKED);
+    EXPECT_CELL_STATE(grid_at(g, 0, 2), CELL_BLOCKED);
+    EXPECT_CELL_STATE(grid_at(g, 2, 0), CELL_BLOCKED);
+    EXPECT_CELL_STATE(grid_at(g, 2, 2), CELL_BLOCKED);
+    EXPECT_CELL_STATE(grid_at(g, 1, 1), CELL_FREE);
+    grid_free(g);
+}
+
+TEST(grid, new_with_blocked_out_of_bounds_ignored) {
+    // Arrange
+    cell blocked[] = { cell_from_row_col(0, 0, 3), (cell){ .idx = 25 }, cell_from_row_col(1, 1, 3) };
+    // Act
+    grid* g = grid_new_with_blocked(3, 3, blocked, 3);
+    // Assert
+    EXPECT_TRUE(g != NULL);
+    EXPECT_CELL_STATE(grid_at(g, 0, 0), CELL_BLOCKED);
+    EXPECT_CELL_STATE(grid_at(g, 1, 1), CELL_BLOCKED);
+    EXPECT_CELL_STATE(grid_at(g, 0, 1), CELL_FREE);
+    grid_free(g);
+}
+
+TEST(grid, new_with_blocked_zero_dimensions) {
+    // Arrange
+    cell blocked[] = { (cell){ .idx = 0 } };
+    // Act
+    grid* g = grid_new_with_blocked(0, 0, blocked, 1);
+    // Assert
+    EXPECT_TRUE(g == NULL);
 }
 
 TEST(grid, free_null) {
@@ -225,6 +298,11 @@ TEST(grid, print_smoke_test) {
 int main(void) {
     RUN_TEST(grid, new_small);
     RUN_TEST(grid, new_empty_cells);
+    RUN_TEST(grid, new_with_blocked_no_cells);
+    RUN_TEST(grid, new_with_blocked_single);
+    RUN_TEST(grid, new_with_blocked_multiple);
+    RUN_TEST(grid, new_with_blocked_out_of_bounds_ignored);
+    RUN_TEST(grid, new_with_blocked_zero_dimensions);
     RUN_TEST(grid, free_null);
     RUN_TEST(grid, set_cell);
     RUN_TEST(grid, set_multiple_cells);
