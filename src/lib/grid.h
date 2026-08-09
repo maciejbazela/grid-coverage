@@ -27,6 +27,7 @@ GRID_DEF grid*      grid_new(size_t rows, size_t cols);
 GRID_DEF grid*      grid_new_with_blocked(size_t rows, size_t cols, const cell* blocked, size_t blocked_count);
 GRID_DEF void       grid_free(grid* g);
 GRID_DEF bool       grid_set(grid* g, size_t row, size_t col);
+GRID_DEF bool       grid_unset(grid* g, size_t row, size_t col);
 GRID_DEF cell_state grid_at(const grid* g, size_t row, size_t col);
 GRID_DEF cell_state grid_at_flat(const grid* g, size_t idx);
 GRID_DEF void       grid_print(const grid* g);

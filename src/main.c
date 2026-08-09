@@ -204,16 +204,26 @@ int main(int argc, char* argv[]) {
     if (argc < 3) {
         printf("Usage: %s ALGORITHM MAX_STEPS [file_path]\n", argv[0]);
         printf("  ALGORITHM: deep, random, warnsdorff, heuristic\n");
+        printf("  MAX_STEPS: integer (absolute limit) or float (fraction of total cells)\n");
         return EXIT_FAILURE;
     }
 
     const char* algo_name = argv[1];
-    int parsed_steps;
-    if (!parse_int(argv[2], &parsed_steps) || parsed_steps < 0) {
-        printf("Invalid MAX_STEPS: %s\n", argv[2]);
-        return EXIT_FAILURE;
+    bool   steps_is_fraction = false;
+    size_t max_steps         = 0;
+    double steps_fraction    = 0.0;
+
+    {
+        int parsed_steps;
+        if (parse_int(argv[2], &parsed_steps) && parsed_steps >= 0)
+            max_steps = (size_t) parsed_steps;
+        else if (parse_double(argv[2], &steps_fraction) && steps_fraction > 0.0)
+            steps_is_fraction = true;
+        else {
+            printf("Invalid MAX_STEPS: %s\n", argv[2]);
+            return EXIT_FAILURE;
+        }
     }
-    size_t max_steps = (size_t) parsed_steps;
 
     grid* g = NULL;
     grid_context* ctx = NULL;
@@ -224,6 +234,13 @@ int main(int argc, char* argv[]) {
     else
         g = parse_grid_stdin();
     if (g == NULL) return EXIT_FAILURE;
+
+    if (steps_is_fraction)
+        max_steps = (size_t)(steps_fraction * (double)g->cell_count);
+    if (max_steps == 0) {
+        printf("max_steps is 0\n");
+        goto fail;
+    }
 
     DEBUG_SCOPE {
         printf("grid parsed successfully!\n");
@@ -249,11 +266,15 @@ int main(int argc, char* argv[]) {
     DEBUG_PRINT("Running %s from all good starts\n", algo_name);
     p = walk_solve_multistart(g, max_steps - 1, inner, ctx);
     if (p == NULL) {
+        DEBUG_PRINT("No path from good starts, falling back to all free cells\n");
+        p = walk_solve_all_free(g, max_steps - 1, inner, ctx);
+    }
+    if (p == NULL) {
         printf("No path found\n");
         goto fail;
     }
 
-    printf("Best result for algorithm: 'walk_solve_%s':\n", algo_name);
+    DEBUG_PRINT("Best result for algorithm: 'walk_solve_%s':\n", algo_name);
     for (size_t i = 0; i < p->size; ++i) {
         cell c = path_at(p, i);
         printf("(%zu, %zu)", cell_row(c, g->cols), cell_col(c, g->cols));

@@ -348,21 +348,21 @@ PREPROC_DEF void grid_good_start(const grid* g, grid_context* ctx) {
     for (size_t i = 0; i < g->cell_count; ++i) {
         if (grid_at_flat(g, i) != CELL_FREE) continue;
 
-        uint8_t  neighbours = ctx->cells[i].neighbour_count;
-        size_t   comp_size    = ctx->component_sizes[ctx->cells[i].component_id];
-        uint32_t cut_distance   = ctx->cells[i].cut_distance;
+        uint8_t  neighbours  = ctx->cells[i].neighbour_count;
+        size_t   comp_size = ctx->component_sizes[ctx->cells[i].component_id];
+        uint32_t cut_distance = ctx->cells[i].cut_distance;
 
-        // 1. Largest component size   - larger connected regions give more room to explore
-        if (comp_size > best_comp_size)
+        if (comp_size > best_comp_size) {
             best_comp_size = comp_size;
-        // 2. Largest cut_distance     - starting far from cut vertices avoids backtracking after passing them
-        if (comp_size == best_comp_size && cut_distance > best_distance)
-            best_distance = cut_distance;
-        // 3. Smallest neighbour_count - starting from dead-ends and corners reduce forced backtrack paths
-        if (comp_size == best_comp_size && cut_distance == best_distance && neighbours < best_neighbours) {
-            best_neighbours   = neighbours;
-            best_comp_size = comp_size;
-            best_distance    = cut_distance;
+            best_distance  = cut_distance;
+            best_neighbours = neighbours;
+        } else if (comp_size == best_comp_size) {
+            if (cut_distance > best_distance) {
+                best_distance  = cut_distance;
+                best_neighbours = neighbours;
+            } else if (cut_distance == best_distance && neighbours < best_neighbours) {
+                best_neighbours = neighbours;
+            }
         }
     }
 

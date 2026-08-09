@@ -18,10 +18,10 @@ GEN_SRCS := $(wildcard generators/*.c)
 GEN_BINS := $(patsubst generators/%.c,$(BUILD_DIR)/generators/%,$(GEN_SRCS))
 
 .PHONY: all clean debug debug_test rebuild test generators
-all: $(TARGET)
-rebuild: clean $(TARGET)
+all: $(TARGET) $(GEN_BINS)
+verbose: CFLAGS += -DDEBUG
+verbose: $(TARGET) $(GEN_BINS)
 
-generators: CFLAGS += -DDEBUG
 generators: $(GEN_BINS)
 
 debug: CFLAGS := $(filter-out -O%,$(CFLAGS))

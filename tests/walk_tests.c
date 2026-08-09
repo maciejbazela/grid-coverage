@@ -318,6 +318,62 @@ TEST(walk_multistart, single_free) {
     grid_free(g);
 }
 
+TEST(walk_all_free, all_blocked_returns_null) {
+    // Arrange
+    grid* g = grid_new(3, 3);
+    for (size_t r = 0; r < 3; ++r)
+        for (size_t c = 0; c < 3; ++c)
+            grid_set(g, r, c);
+    grid_context* ctx = grid_preprocess(g);
+    // Act
+    path* p = walk_solve_all_free(g, 10, walk_solve_deep, ctx);
+    // Assert
+    EXPECT_TRUE(p == NULL);
+    grid_context_free(ctx);
+    grid_free(g);
+}
+
+TEST(walk_all_free, strip_1x3_all) {
+    // Arrange
+    grid* g = grid_new(1, 3);
+    grid_context* ctx = grid_preprocess(g);
+    // Act
+    path* p = walk_solve_all_free(g, 10, walk_solve_deep, ctx);
+    // Assert
+    EXPECT_TRUE(p != NULL);
+    EXPECT_SIZE_EQ(path_unique_cells(p), 3);
+    path_free(p);
+    grid_context_free(ctx);
+    grid_free(g);
+}
+
+TEST(walk_all_free, cross_shape) {
+    // Arrange
+    grid* g = make_cross();
+    grid_context* ctx = grid_preprocess(g);
+    // Act
+    path* p = walk_solve_all_free(g, 20, walk_solve_deep, ctx);
+    // Assert
+    EXPECT_TRUE(p != NULL);
+    EXPECT_SIZE_EQ(path_unique_cells(p), 5);
+    path_free(p);
+    grid_context_free(ctx);
+    grid_free(g);
+}
+
+TEST(walk_all_free, limited_steps) {
+    // Arrange
+    grid* g = grid_new(1, 4);
+    grid_context* ctx = grid_preprocess(g);
+    // Act
+    path* p = walk_solve_all_free(g, 2, walk_solve_deep, ctx);
+    // Assert
+    EXPECT_SIZE_EQ(path_unique_cells(p), 3);
+    path_free(p);
+    grid_context_free(ctx);
+    grid_free(g);
+}
+
 int main(void) {
     RUN_TEST(walk, pick_start_1x3_strip);
     RUN_TEST(walk, pick_start_all_blocked);
@@ -340,5 +396,9 @@ int main(void) {
     RUN_TEST(walk_multistart, all_blocked_returns_null);
     RUN_TEST(walk_multistart, cross_shape);
     RUN_TEST(walk_multistart, single_free);
+    RUN_TEST(walk_all_free, all_blocked_returns_null);
+    RUN_TEST(walk_all_free, strip_1x3_all);
+    RUN_TEST(walk_all_free, cross_shape);
+    RUN_TEST(walk_all_free, limited_steps);
     return test_summary();
 }

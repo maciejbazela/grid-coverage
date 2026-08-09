@@ -16,6 +16,7 @@ WALK_DEF path* walk_solve_random(const grid* g, size_t max_steps, cell start, co
 WALK_DEF path* walk_solve_warnsdorff(const grid* g, size_t max_steps, cell start, const grid_context* ctx);
 WALK_DEF path* walk_solve_heuristic(const grid* g, size_t max_steps, cell start, const grid_context* ctx);
 WALK_DEF path* walk_solve_multistart(const grid* g, size_t max_steps, traverse_fn inner, const grid_context* ctx);
+WALK_DEF path* walk_solve_all_free(const grid* g, size_t max_steps, traverse_fn inner, const grid_context* ctx);
 
 #ifdef WALK_IMPL
 
@@ -280,6 +281,45 @@ WALK_DEF path* walk_solve_multistart(const grid* g, size_t max_steps, traverse_f
     }
 
     DEBUG_PRINT("[multistart] done, best=%zu\n", best_unique);
+    return best_path;
+}
+
+WALK_DEF path* walk_solve_all_free(const grid* g, size_t max_steps, traverse_fn inner, const grid_context* ctx) {
+    (void) ctx;
+
+    path* best_path = NULL;
+    size_t best_unique = 0;
+
+    DEBUG_SCOPE {
+        size_t free_cells = 0;
+        for (size_t i = 0; i < g->cell_count; ++i)
+            if (grid_at_flat(g, i) == CELL_FREE) ++free_cells;
+        DEBUG_PRINT("[all_free] %zu free cells, max_steps=%zu\n", free_cells, max_steps);
+    }
+
+    for (size_t i = 0; i < g->cell_count; ++i) {
+        if (grid_at_flat(g, i) != CELL_FREE) continue;
+
+        DEBUG_PRINT("[all_free] trying start (%zu, %zu)\n", i / g->cols, i % g->cols);
+
+        path* candidate = inner(g, max_steps, (cell){ .idx = i }, ctx);
+        if (candidate == NULL) continue;
+
+        size_t u = path_unique_cells(candidate);
+        DEBUG_PRINT("[all_free]   unique=%zu\n", u);
+        if (u > best_unique) {
+            DEBUG_PRINT("[all_free]   new best! %zu -> %zu\n", best_unique, u);
+            if (best_path != NULL) path_free(best_path);
+            best_path = candidate;
+            best_unique = u;
+            if (u == max_steps + 1) // Theoretical optimum
+                return best_path;
+        }
+        else
+            path_free(candidate);
+    }
+
+    DEBUG_PRINT("[all_free] done, best=%zu\n", best_unique);
     return best_path;
 }
 
