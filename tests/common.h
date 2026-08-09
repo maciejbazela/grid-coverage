@@ -1,7 +1,6 @@
 #pragma once
 
 #include <stdio.h>
-#include <stdbool.h>
 
 static unsigned int failed_tests = 0;
 static unsigned int total_tests = 0;

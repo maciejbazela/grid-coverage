@@ -187,7 +187,7 @@ PREPROC_DEF void grid_cut_vertices(const grid* g, grid_context* ctx) {
                     // We have to pass through p, so p is a cut vertex
                     if (state[p].parent != SIZE_MAX && state[v].low >= state[p].disc) {
                         DEBUG_PRINT(
-                            "[cut_vertices] cut vertex %zu detected (child %zu low %u >= %lu disc %u)\n",
+                            "[cut_vertices] cut vertex %zu detected (child %zu low %u >= %zu disc %u)\n",
                             p, v, state[v].low, p, state[p].disc
                         );
                         ctx->cells[p].is_cut_vertex = true;

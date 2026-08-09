@@ -32,7 +32,7 @@ STACK_DEF stack* stack_new(size_t capacity) {
     if (capacity > (SIZE_MAX - sizeof(stack)) / sizeof(size_t)) return NULL;
 
     stack* s = malloc(sizeof(stack) + capacity * sizeof(size_t));
-    if (!s) return NULL;
+    if (s == NULL) return NULL;
     s->size = 0;
     s->capacity = capacity;
 

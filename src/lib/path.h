@@ -1,6 +1,5 @@
 #pragma once
 
-#include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -102,7 +101,7 @@ PATH_DEF void path_print(const path* p, size_t cols) {
         size_t row = cell_row(p->cells[i], cols);
         size_t col = cell_col(p->cells[i], cols);
         printf("(%zu, %zu), ", row, col);
-        in_row++;
+        ++in_row;
     }
     // Last cell without comma
     printf("(%zu, %zu)\n}\n", cell_row(p->cells[p->size - 1], cols), cell_col(p->cells[p->size - 1], cols));

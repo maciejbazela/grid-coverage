@@ -33,7 +33,7 @@ QUEUE_DEF queue* queue_new(size_t capacity) {
     if (capacity > (SIZE_MAX - sizeof(queue)) / sizeof(size_t)) return NULL;
 
     queue* q = malloc(sizeof(queue) + capacity * sizeof(size_t));
-    if (!q) return NULL;
+    if (q == NULL) return NULL;
     q->head = 0;
     q->tail = 0;
     q->size = 0;
@@ -51,7 +51,7 @@ QUEUE_DEF bool queue_push(queue* q, size_t val) {
     if (queue_full(q)) return false;
     q->elements[q->tail] = val;
     q->tail = (q->tail + 1) % q->capacity;
-    q->size++;
+    ++q->size;
     return true;
 }
 

@@ -13,7 +13,7 @@ The program automatically chooses a start cell by computing additional informati
 To build the project you need `gcc` and `make`.
 
 ```
-make all
+make
 ```
 
 This command builds two groups of binaries:
